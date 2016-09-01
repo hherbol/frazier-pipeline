@@ -53,6 +53,9 @@ fpl_job.start(on_queue=None)
 		self.finished = False
 		self.enthalpy_of_solvation = None
 
+	def read_in_defaults(fptr):
+		raise Exception("THIS HASN'T BEEN DONE")
+
 	def wait_till_finished(self, t=60):
 		while self.run_name in log.get_jlist():
 			time.sleep(60)

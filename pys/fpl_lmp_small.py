@@ -57,7 +57,7 @@ fix motion mobile nvt temp 100.0 100.0 100.0
 
 timestep 1.0
 #run 15000
-run 500
+run 300
 
 minimize 1.0e-4 1.0e-6 1000 10000
 
@@ -74,14 +74,20 @@ write_restart $RUN_NAME$.restart'''
 
 	## Grab only molecules we're interested in.  Here we find relative distances to the solute in question
 	molecules_in_cluster = []
+	m_solute = None
 	if solute:
-		pb = None
-		for m in system.molecules:
-			if "Pb" not in [a.element for a in m.atoms]: continue
-			pb = m
-		if pb is None: raise Exception("Could not find Pb!")
+		m_solute = utils.Molecule(cml_dir+solute, test_charges=False, allow_errors=True)
+		diffs = []
+		for molec in system.molecules:
+			chk = [m_solute.atoms, molec.atoms]
+			utils.procrustes(chk)
+			diffs.append(utils.motion_per_frame(chk)[-1])
+		index_of_solute = diffs.index(min(diffs))
+
+		m_solute = system.molecules[index_of_solute]
+
 		for m in system.molecules: # Get list of molecules and distances from solute molecule
-			R = sum([(a-b)**2 for a,b in zip(pb.get_com(skip_H=True),m.get_com(skip_H=True))])/3.0
+			R = sum([(a-b)**2 for a,b in zip(m_solute.get_com(skip_H=True),m.get_com(skip_H=True))])/3.0
 			molecules_in_cluster.append( (R,m) )
 	else:
 		origin = utils.Atom('X',0.0,0.0,0.0)
@@ -103,13 +109,13 @@ write_restart $RUN_NAME$.restart'''
 		system.add(m)
 		for a,b in zip(system.molecules[-1].atoms, m.atoms):
 			a.x, a.y, a.z = b.x, b.y, b.z
-	files.write_lammps_data(system,True)
+	#files.write_lammps_data(system,True,default_angles=fpl_constants.default_angles)
 
 	# Step 2 - Run LAMMPs minimization for a large solvated box
 	os.chdir(path+'lammps')
-	files.write_lammps_data(system,True)
+	files.write_lammps_data(system,True,default_angles=fpl_constants.default_angles)
 
-	mobile = str(len(solute.atoms) if solute else 0)
+	mobile = str(len(m_solute.atoms) if m_solute else 0)
 	LAMMPS_SIMULATION = fpl_utils.input_variable("$RUN_NAME$", run_name, LAMMPS_SIMULATION)
 	LAMMPS_SIMULATION = fpl_utils.input_variable("$MOBILE$", mobile, LAMMPS_SIMULATION)
 	LAMMPS_SIMULATION = fpl_utils.input_variable("$SEED$", seed, LAMMPS_SIMULATION)

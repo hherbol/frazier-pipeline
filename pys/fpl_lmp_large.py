@@ -74,7 +74,7 @@ write_restart $RUN_NAME$.restart'''
 	
 	# Step 2 - Run LAMMPs minimization for a large solvated box
 	os.chdir(path+'lammps')
-	files.write_lammps_data(system,True)
+	files.write_lammps_data(system,True,default_angles=fpl_constants.default_angles)
 
 	mobile = str(len(solute.atoms) if solute else 0)
 	LAMMPS_SIMULATION = fpl_utils.input_variable("$RUN_NAME$", run_name, LAMMPS_SIMULATION)

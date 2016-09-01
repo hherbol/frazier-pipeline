@@ -6,26 +6,10 @@ import numpy as np
 import cPickle as pickle
 
 # fpl Imports
-import fpl_constants
+import fpl_constants, fpl_utils
 
 # Clancelot Imports
 import files, units, orca
-
-def get_xyz_elems(run_name):
-	data = open(run_name+'.data').read()
-	start = data.index('Masses')
-	try:
-		end = data.index('Pair Coeffs')
-	except:
-		end = data.index('Bond Coeffs')
-
-	elements_by_index = {}
-	for line in data[start:end].splitlines():
-		if line and line[0].isdigit():
-			index, mass = line.split()
-			elements_by_index[index] = units.elem_sym_from_weight(float(mass))
-
-	return elements_by_index
 
 def job(run_name, prev_run_name, system, solvent_name, path=os.getcwd()+"/", debug=False,
 	    route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
@@ -43,7 +27,7 @@ def job(run_name, prev_run_name, system, solvent_name, path=os.getcwd()+"/", deb
 
 	# Step 1 - Generate the structure for our orca simulation
 	## Grab last frame of this smaller, newly optimized system and store
-	elements_by_index = get_xyz_elems(prev_run_name)
+	elements_by_index = fpl_utils.get_xyz_elems(prev_run_name)
 	xyz = files.read_xyz(system.name+'.xyz')
 	## Convert Ba to Pb (we had used Ba in LAMMPs, but in reality we want Pb)
 	for a,b in zip(system.atoms,xyz[-1]):

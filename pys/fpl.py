@@ -5,15 +5,10 @@ import os, time
 import cPickle as pickle
 
 # fpl Imports
-import fpl_lmp_large, fpl_lmp_small, fpl_orca #, fpl_calc
+import fpl_lmp_large, fpl_lmp_small, fpl_orca, fpl_utils #, fpl_calc
 
 # Clancelot Imports
 import log, utils
-
-def input_variable(s_id, var, s):
-	while s_id in s:
-		s = s.replace(s_id, str(var))
-	return s
 
 class fpl_job:
 	py_on_queue = '''import os, time
@@ -24,7 +19,8 @@ import fpl_lmp_large, fpl_lmp_small, fpl_orca
 import log
 
 os.system("rm $THIS_PY_FILE$")
-fpl_job = pickle.load("$FPL_JOBS_PICKLE$")
+fptr = open("$FPL_JOBS_PICKLE$")
+fpl_job = pickle.load(fptr)
 fpl_job.start(on_queue=None)
 '''
 
@@ -40,8 +36,12 @@ fpl_job.start(on_queue=None)
 		self.solute = solute
 		self.seed = seed
 		self.num_solvents = num_solvents
+
 		self.path = path
+		if not self.path.endswith("/"): self.path += "/"
 		self.cml_dir = cml_dir
+		if not self.cml_dir.endswith("/"): self.cml_dir += "/"
+
 		self.extra = extra
 		self.route = route
 		self.extra_section = extra_section
@@ -51,26 +51,22 @@ fpl_job.start(on_queue=None)
 		self.debug = debug
 
 		self.finished = False
-		self.ran_on_queue = False
 		self.enthalpy_of_solvation = None
 
 	def wait_till_finished(self, t=60):
-		if self.ran_on_queue:
-			while self.run_name in log.get_jlist():
-				time.sleep(60)
-		else:
-			while self.run_name+"_dft" in log.get_jlist():
-				time.sleep(60)
+		while self.run_name in log.get_jlist():
+			time.sleep(60)
+		while self.run_name+"_dft" in log.get_jlist():
+			time.sleep(60)
 		self.finished = True
 
 	def is_finished(self):
-		if self.ran_on_queue:
-			self.finished = self.run_name not in log.get_jlist()
-		else:
-			self.finished = self.run_name+"_dft" not in log.get_jlist()
+		jlist = log.get_jlist()
+		self.finished = (self.run_name+"_dft" not in jlist) and (self.run_name not in jlist)
 		return self.finished
 
 	def start(self, on_queue=False):
+		if not self.path.endswith("/"): self.path += "/"
 
 		if not on_queue:
 			# Run jobs here
@@ -91,13 +87,12 @@ fpl_job.start(on_queue=None)
 			f_pickle = self.path+"fpl_jobs/"+self.run_name+".pickle"
 			py_file = self.path+self.run_name+".py"
 			pickle.dump(self, open(f_pickle, 'w'))
-			self.py_on_queue = input_variable("$FPL_JOBS_PICKLE$", f_pickle, self.py_on_queue)
-			self.py_on_queue = input_variable("$THIS_PY_FILE$", py_file, self.py_on_queue)
+			self.py_on_queue = fpl_utils.input_variable("$FPL_JOBS_PICKLE$", f_pickle, self.py_on_queue)
+			self.py_on_queue = fpl_utils.input_variable("$THIS_PY_FILE$", py_file, self.py_on_queue)
 			f_py_file = open(py_file, 'w')
 			f_py_file.write(self.py_on_queue)
 			f_py_file.close()
-			utils.pysub(self.run_name, nprocs=self.pysub_params["procs"], queue=self.pysub_params["queue"], xhost=self.pysub_params["xhost"], path=os.getcwd(), remove_nbs=False)
-			self.ran_on_queue = True
+			utils.pysub(self.run_name, nprocs=self.pysub_params["procs"], queue=self.pysub_params["queue"], xhost=self.pysub_params["xhost"], path=os.getcwd(), remove_nbs=True)
 
 		# Calculate all output here
 		#self.enthalpy_of_solvation = fpl_calc.get_solvation()

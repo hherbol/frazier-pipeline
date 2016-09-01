@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 # fpl Imports
-import fpl_constants
+import fpl_constants, fpl_utils
 
 # Clancelot Imports
 import files, utils
@@ -19,11 +19,6 @@ import files, utils
 #     job() will return None if failure at any point
 #
 #
-
-def input_variable(s_id, var, s):
-	while s_id in s:
-		s = s.replace(s_id, str(var))
-	return s
 
 # TODO - Generalize where we find the solute. Currently we assume "Pb" is the solute and we find the molecule with the "Pb" element. What if it isn't in the solute though?
 def job(run_name, prev_run_name, system, solvent_name, solute=None, seed=1, num_solvents=25, path=os.getcwd()+"/", extra={}, cml_dir=os.getcwd()+"/cml/", debug=False):
@@ -115,14 +110,14 @@ write_restart $RUN_NAME$.restart'''
 	files.write_lammps_data(system,True)
 
 	mobile = str(len(solute.atoms) if solute else 0)
-	LAMMPS_SIMULATION = input_variable("$RUN_NAME$", run_name, LAMMPS_SIMULATION)
-	LAMMPS_SIMULATION = input_variable("$MOBILE$", mobile, LAMMPS_SIMULATION)
-	LAMMPS_SIMULATION = input_variable("$SEED$", seed, LAMMPS_SIMULATION)
+	LAMMPS_SIMULATION = fpl_utils.input_variable("$RUN_NAME$", run_name, LAMMPS_SIMULATION)
+	LAMMPS_SIMULATION = fpl_utils.input_variable("$MOBILE$", mobile, LAMMPS_SIMULATION)
+	LAMMPS_SIMULATION = fpl_utils.input_variable("$SEED$", seed, LAMMPS_SIMULATION)
 
 	imobile = ""
 	if solute is not None:
 		imobile = "velocity immobile zero linear\nfix freeze immobile setforce 0.0 0.0 0.0"
-	LAMMPS_SIMULATION = input_variable("$IMOBILE$", imobile, LAMMPS_SIMULATION)
+	LAMMPS_SIMULATION = fpl_utils.input_variable("$IMOBILE$", imobile, LAMMPS_SIMULATION)
 
 	open(run_name+'.in', 'w').write(LAMMPS_SIMULATION)
 	if not debug:

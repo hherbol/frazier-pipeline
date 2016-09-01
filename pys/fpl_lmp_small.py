@@ -2,6 +2,7 @@
 
 # Python Imports
 import os
+import numpy as np
 
 # fpl Imports
 import fpl_constants
@@ -24,9 +25,12 @@ def input_variable(s_id, var, s):
 		s = s.replace(s_id, str(var))
 	return s
 
-def job(run_name, system, solvent_name, solute=None, seed=1, num_solvents=25, path=os.getcwd()+"/", extra={}, cml_dir=os.getcwd()+"/cml/", debug=False):
+# TODO - Generalize where we find the solute. Currently we assume "Pb" is the solute and we find the molecule with the "Pb" element. What if it isn't in the solute though?
+def job(run_name, prev_run_name, system, solvent_name, solute=None, seed=1, num_solvents=25, path=os.getcwd()+"/", extra={}, cml_dir=os.getcwd()+"/cml/", debug=False):
 
 	# Step 0 - Ensure proper variables
+	if not os.path.exists(path+"lammps"):
+		os.mkdir(path+"lammps")
 	if not path.endswith("/"): path += "/"
 	LAMMPS_SIMULATION = '''units real
 atom_style full
@@ -50,23 +54,27 @@ group immobile subtract all mobile
 $IMOBILE$
 
 minimize 1.0e-4 1.0e-6 1000 10000
+
 velocity mobile create 100.0 $SEED$ rot yes dist gaussian
 velocity immobile set 0.0 0.0 0.0
-#fix motion mobile npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0
+
 fix motion mobile nvt temp 100.0 100.0 100.0
+
 timestep 1.0
-run 15000
+#run 15000
+run 500
+
 minimize 1.0e-4 1.0e-6 1000 10000
 
 write_restart $RUN_NAME$.restart'''
 
 	# Step 1 - Read in previous large lammps simulation
-	xyz = files.read_xyz(run_name+'.xyz')
+	xyz = files.read_xyz(prev_run_name+'.xyz')
 	
 	## Store end of last LAMMPs simulation to system.atoms variable
 	for a,b in zip(system.atoms, xyz[-1]):
 		a.x, a.y, a.z = b.x, b.y, b.z
-		if any( [numpy.isnan(x) for x in (a.x,a.y,a.z)] ):
+		if any( [np.isnan(x) for x in (a.x,a.y,a.z)] ):
 			return None
 
 	## Grab only molecules we're interested in.  Here we find relative distances to the solute in question
@@ -78,7 +86,7 @@ write_restart $RUN_NAME$.restart'''
 			pb = m
 		if pb is None: raise Exception("Could not find Pb!")
 		for m in system.molecules: # Get list of molecules and distances from solute molecule
-			R = sum([(a-b)**2 for a,b in zip(pb.get_com(),m.get_com())])/3.0
+			R = sum([(a-b)**2 for a,b in zip(pb.get_com(skip_H=True),m.get_com(skip_H=True))])/3.0
 			molecules_in_cluster.append( (R,m) )
 	else:
 		origin = utils.Atom('X',0.0,0.0,0.0)
@@ -95,7 +103,7 @@ write_restart $RUN_NAME$.restart'''
 	
 	## Generate the new system
 	system = None
-	system = utils.System(box_size=(100, 100, 100), name=run_name+'_1')
+	system = utils.System(box_size=(100, 100, 100), name=run_name)
 	for m in molecules_in_cluster:
 		system.add(m)
 		for a,b in zip(system.molecules[-1].atoms, m.atoms):

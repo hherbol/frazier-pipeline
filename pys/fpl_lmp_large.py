@@ -28,6 +28,8 @@ def input_variable(s_id, var, s):
 def job(run_name, solvent_name, solute=None, seed=1, path=os.getcwd()+"/", extra={}, cml_dir=os.getcwd()+"/cml/", debug=False):
 
 	# Step 0 - Ensure proper variables
+	if not os.path.exists(path+"lammps"):
+		os.mkdir(path+"lammps")
 	if not path.endswith("/"): path += "/"
 	LAMMPS_SIMULATION = '''units real
 atom_style full
@@ -51,12 +53,15 @@ group immobile subtract all mobile
 $IMOBILE$
 
 minimize 1.0e-4 1.0e-6 100 1000
+
 velocity mobile create 300.0 $SEED$ rot yes dist gaussian
 velocity immobile set 0.0 0.0 0.0
+
 fix motion mobile npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0
-#fix motion mobile nvt temp 300.0 300.0 100.0
+
 timestep 1.0
-run 100000
+#run 100000
+run 2000
 
 write_restart $RUN_NAME$.restart'''
 

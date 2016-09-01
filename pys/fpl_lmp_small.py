@@ -56,8 +56,8 @@ velocity immobile set 0.0 0.0 0.0
 fix motion mobile nvt temp 100.0 100.0 100.0
 
 timestep 1.0
-#run 15000
-run 300
+run 15000
+#run 300
 
 minimize 1.0e-4 1.0e-6 1000 10000
 

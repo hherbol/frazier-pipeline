@@ -55,8 +55,8 @@ velocity immobile set 0.0 0.0 0.0
 fix motion mobile npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0
 
 timestep 1.0
-#run 100000
-run 2000
+run 100000
+#run 2000
 
 write_restart $RUN_NAME$.restart'''
 

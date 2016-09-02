@@ -56,8 +56,8 @@ velocity immobile set 0.0 0.0 0.0
 fix motion mobile nvt temp 100.0 100.0 100.0
 
 timestep 1.0
-run 15000
-#run 300
+#run 15000
+run 300
 
 minimize 1.0e-4 1.0e-6 1000 10000
 
@@ -79,7 +79,12 @@ write_restart $RUN_NAME$.restart'''
 		m_solute = utils.Molecule(cml_dir+solute, test_charges=False, allow_errors=True)
 		diffs = []
 		for molec in system.molecules:
-			chk = [m_solute.atoms, molec.atoms]
+			# NOTE, ORDER MATTERS! As procrustes WILL change the atomic positions of the
+			# second list of atoms to best match the first.  We don't care if m_solute
+			# changes, but if everything else overlaps with m_solute then we have an issue.
+			chk = [molec.atoms, m_solute.atoms]
+			if len(chk[0]) != len(chk[1]): continue
+			#chk = [copy.deepcopy(molec.atoms), copy.deepcopy(m_solute.atoms)]
 			utils.procrustes(chk)
 			diffs.append(utils.motion_per_frame(chk)[-1])
 		index_of_solute = diffs.index(min(diffs))

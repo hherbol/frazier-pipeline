@@ -7,7 +7,7 @@ import os
 import fpl_constants, fpl_utils
 
 # Clancelot Imports
-import files, utils
+import files, structures
 
 # Requirements:
 #     1. The simulation is run from a folder with a subfolder "cml" containing the structure
@@ -63,14 +63,14 @@ write_restart $RUN_NAME$.restart'''
 	# Step 1 - Use Packmol to randomly solvate the solute
 	os.chdir(path)
 	## Generate empty system
-	system = utils.System(box_size=(25, 25, 25), name=run_name)
+	system = structures.System(box_size=(25, 25, 25), name=run_name)
 	## Get structures for solvent and solute
-	solvent = utils.Molecule(cml_dir+solvent_name, extra_parameters=extra, allow_errors=True)
+	solvent = structures.Molecule(cml_dir+solvent_name, extra_parameters=extra, allow_errors=True)
 	if solute:
-		solute = utils.Molecule(cml_dir+solute, test_charges=False, allow_errors=True)
+		solute = structures.Molecule(cml_dir+solute, test_charges=False, allow_errors=True)
 		system.add(solute)
 	## Pack the system
-	files.packmol(system, (solvent,), (1,), fpl_constants.solvent[solvent_name]["density"], seed)
+	system.packmol((solvent,), (1,), fpl_constants.solvent[solvent_name]["density"], seed)
 	
 	# Step 2 - Run LAMMPs minimization for a large solvated box
 	os.chdir(path+'lammps')

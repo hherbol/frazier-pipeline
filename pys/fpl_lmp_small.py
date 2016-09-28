@@ -8,7 +8,7 @@ import numpy as np
 import fpl_constants, fpl_utils
 
 # Clancelot Imports
-import files, utils
+import files, geometry, structures
 
 # Requirements:
 #     1. The simulation is run from a folder with a subfolder "cml" containing the structure
@@ -76,7 +76,7 @@ write_restart $RUN_NAME$.restart'''
 	molecules_in_cluster = []
 	m_solute = None
 	if solute:
-		m_solute = utils.Molecule(cml_dir+solute, test_charges=False, allow_errors=True)
+		m_solute = structures.Molecule(cml_dir+solute, test_charges=False, allow_errors=True)
 		diffs = []
 		for molec in system.molecules:
 			# NOTE, ORDER MATTERS! As procrustes WILL change the atomic positions of the
@@ -85,19 +85,19 @@ write_restart $RUN_NAME$.restart'''
 			chk = [molec.atoms, m_solute.atoms]
 			if len(chk[0]) != len(chk[1]): continue
 			#chk = [copy.deepcopy(molec.atoms), copy.deepcopy(m_solute.atoms)]
-			utils.procrustes(chk)
-			diffs.append(utils.motion_per_frame(chk)[-1])
+			geometry.procrustes(chk)
+			diffs.append(geometry.motion_per_frame(chk)[-1])
 		index_of_solute = diffs.index(min(diffs))
 
 		m_solute = system.molecules[index_of_solute]
 
 		for m in system.molecules: # Get list of molecules and distances from solute molecule
-			R = sum([(a-b)**2 for a,b in zip(m_solute.get_com(skip_H=True),m.get_com(skip_H=True))])/3.0
+			R = sum([(a-b)**2 for a,b in zip(m_solute.get_center_of_geometry(skip_H=True),m.get_center_of_geometry(skip_H=True))])/3.0
 			molecules_in_cluster.append( (R,m) )
 	else:
-		origin = utils.Atom('X',0.0,0.0,0.0)
+		origin = structures.Atom('X',0.0,0.0,0.0)
 		for m in system.molecules:
-			R = utils.dist(origin,m.atoms[0])
+			R = geometry.dist(origin,m.atoms[0])
 			molecules_in_cluster.append( (R,m) )
 
 	## Grab closest x solvent molecules.  In the case of solutes existing, we have x+1 in total
@@ -109,7 +109,7 @@ write_restart $RUN_NAME$.restart'''
 	
 	## Generate the new system
 	system = None
-	system = utils.System(box_size=(100, 100, 100), name=run_name)
+	system = structures.System(box_size=(100, 100, 100), name=run_name)
 	for m in molecules_in_cluster:
 		system.add(m)
 		for a,b in zip(system.molecules[-1].atoms, m.atoms):

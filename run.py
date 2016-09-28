@@ -6,7 +6,6 @@ import time, datetime
 main_dir = os.getcwd()
 
 ####################
-#solute = "MAI"
 solute = "pb2+"
 for solvent in ["THTO"]:
 	os.chdir(main_dir)
@@ -24,9 +23,7 @@ for solvent in ["THTO"]:
 	run_simulation.dft_params["xhost"]="shergar"
 	run_simulation.dft_params["queue"]="long"
 	run_simulation.dft_params["procs"]=4
-	run_simulation.num_solvents=10
-
-	#run_simulation.debug=True
+	run_simulation.num_solvents=5
 
 	run_simulation.start()
 	#run_simulation.start(on_queue=True)

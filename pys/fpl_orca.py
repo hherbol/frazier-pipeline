@@ -9,7 +9,7 @@ import cPickle as pickle
 import fpl_constants, fpl_utils
 
 # Clancelot Imports
-import files, units, orca
+import files, orca
 
 def job(run_name, prev_run_name, system, solvent_name, path=os.getcwd()+"/", debug=False,
 	    route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",

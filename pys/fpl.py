@@ -8,15 +8,13 @@ import cPickle as pickle
 import fpl_lmp_large, fpl_lmp_small, fpl_orca, fpl_utils #, fpl_calc
 
 # Clancelot Imports
-import log, utils
+import jobs
 
 class fpl_job:
 	py_on_queue = '''import os, time
 import cPickle as pickle
 
 import fpl_lmp_large, fpl_lmp_small, fpl_orca
-
-import log
 
 os.system("rm $THIS_PY_FILE$")
 fptr = open("$FPL_JOBS_PICKLE$")
@@ -57,14 +55,14 @@ fpl_job.start(on_queue=None)
 		raise Exception("THIS HASN'T BEEN DONE")
 
 	def wait_till_finished(self, t=60):
-		while self.run_name in log.get_jlist():
+		while self.run_name in jobs.get_all_jobs():
 			time.sleep(60)
-		while self.run_name+"_dft" in log.get_jlist():
+		while self.run_name+"_dft" in jobs.get_all_jobs():
 			time.sleep(60)
 		self.finished = True
 
 	def is_finished(self):
-		jlist = log.get_jlist()
+		jlist = jobs.get_all_jobs()
 		self.finished = (self.run_name+"_dft" not in jlist) and (self.run_name not in jlist)
 		return self.finished
 
@@ -95,7 +93,7 @@ fpl_job.start(on_queue=None)
 			f_py_file = open(py_file, 'w')
 			f_py_file.write(self.py_on_queue)
 			f_py_file.close()
-			utils.pysub(self.run_name, nprocs=self.pysub_params["procs"], queue=self.pysub_params["queue"], xhost=self.pysub_params["xhost"], path=os.getcwd(), remove_nbs=True)
+			jobs.pysub(self.run_name, nprocs=self.pysub_params["procs"], queue=self.pysub_params["queue"], xhost=self.pysub_params["xhost"], path=os.getcwd(), remove_nbs=True)
 
 		# Calculate all output here
 		#self.enthalpy_of_solvation = fpl_calc.get_solvation()

@@ -23,6 +23,8 @@ fpl_job.start(on_queue=None)
 '''
 
 	def __init__(self, run_name, solvent_name, solute=None, seed=1, num_solvents=25, path=os.getcwd()+"/", cml_dir=os.getcwd()+"/cml/", extra={},
+                 bl_rl = 10000,
+                 ll_rl = 15000,
                  route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
                  extra_section = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end",
                  implicit_solvent = True,
@@ -39,6 +41,9 @@ fpl_job.start(on_queue=None)
 		if not self.path.endswith("/"): self.path += "/"
 		self.cml_dir = cml_dir
 		if not self.cml_dir.endswith("/"): self.cml_dir += "/"
+
+		self.bl_rl = bl_rl
+		self.ll_rl = ll_rl
 
 		self.extra = extra
 		self.route = route
@@ -72,9 +77,9 @@ fpl_job.start(on_queue=None)
 		if not on_queue:
 			# Run jobs here
 			print("\n\t\t\tRUNNING BIG\n")
-			system = fpl_lmp_large.job(self.run_name+"_large", self.solvent_name, solute=self.solute, seed=self.seed, path=self.path, cml_dir=self.cml_dir, extra=self.extra, debug=self.debug)
+			system = fpl_lmp_large.job(self.run_name+"_large", self.solvent_name, solute=self.solute, seed=self.seed, run_len=self.bl_rl, path=self.path, cml_dir=self.cml_dir, extra=self.extra, debug=self.debug)
 			print("\n\t\t\tRUNNING SMALL\n")
-			system = fpl_lmp_small.job(self.run_name+"_small", self.run_name+"_large", system, self.solvent_name, solute=self.solute, seed=self.seed, num_solvents=self.num_solvents, path=self.path, cml_dir=self.cml_dir, extra=self.extra, debug=self.debug)
+			system = fpl_lmp_small.job(self.run_name+"_small", self.run_name+"_large", system, self.solvent_name, solute=self.solute, seed=self.seed, run_len=self.ll_rl, num_solvents=self.num_solvents, path=self.path, cml_dir=self.cml_dir, extra=self.extra, debug=self.debug)
 			print("\n\t\t\tRUNNING DFT\n")
 			fpl_orca.job(self.run_name+"_dft", self.run_name+"_small", system, self.solvent_name, path=self.path,
 						route = self.route,

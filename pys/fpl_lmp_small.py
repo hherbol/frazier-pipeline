@@ -21,7 +21,7 @@ import files, geometry, structures
 #
 
 # TODO - Generalize where we find the solute. Currently we assume "Pb" is the solute and we find the molecule with the "Pb" element. What if it isn't in the solute though?
-def job(run_name, prev_run_name, system, solvent_name, solute=None, seed=1, num_solvents=25, path=os.getcwd()+"/", extra={}, cml_dir=os.getcwd()+"/cml/", debug=False):
+def job(run_name, prev_run_name, system, solvent_name, solute=None, seed=1, run_len=15000, num_solvents=25, path=os.getcwd()+"/", extra={}, cml_dir=os.getcwd()+"/cml/", debug=False):
 
 	# Step 0 - Ensure proper variables
 	if not os.path.exists(path+"lammps"):
@@ -56,7 +56,7 @@ velocity immobile set 0.0 0.0 0.0
 fix motion mobile nvt temp 100.0 100.0 100.0
 
 timestep 1.0
-run 15000
+run $RUN_LEN$
 #run 300
 
 minimize 1.0e-4 1.0e-6 1000 10000
@@ -124,6 +124,7 @@ write_restart $RUN_NAME$.restart'''
 	LAMMPS_SIMULATION = fpl_utils.input_variable("$RUN_NAME$", run_name, LAMMPS_SIMULATION)
 	LAMMPS_SIMULATION = fpl_utils.input_variable("$MOBILE$", mobile, LAMMPS_SIMULATION)
 	LAMMPS_SIMULATION = fpl_utils.input_variable("$SEED$", seed, LAMMPS_SIMULATION)
+	LAMMPS_SIMULATION = fpl_utils.input_variable("$RUN_LEN$", run_len, LAMMPS_SIMULATION)
 
 	imobile = ""
 	if solute is not None:

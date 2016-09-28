@@ -1,7 +1,8 @@
 # Clancelot Imports
 import structures
+import sysconst
 
-path_to_lammps = "/fs/home/bas348/lammps/15May2015/src/lmp_serial"
+path_to_lammps = sysconst.lmp_path
 
 solvent = {"THTO":{"density":1.2, "dielectric":42.84},
            "GBL":{"density":1.1, "dielectric":40.24},

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Frazier-PipeLine documentation build configuration file, created by
-# sphinx-quickstart on Wed Sep 28 13:54:16 2016.
+# sphinx-quickstart on Wed Sep 28 14:01:41 2016.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -16,9 +16,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../../pys/'))
 
 # -- General configuration ------------------------------------------------
 
@@ -30,8 +30,11 @@
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autodoc',
     'sphinx.ext.todo',
+    'sphinx.ext.coverage',
     'sphinx.ext.imgmath',
+    'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
 ]
 
@@ -84,7 +87,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = []
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -123,13 +126,16 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'classic'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 # html_theme_options = {}
+html_theme_options = {
+    "stickysidebar": "true"
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -179,6 +185,7 @@ html_static_path = ['_static']
 # Custom sidebar templates, maps document names to template names.
 #
 # html_sidebars = {}
+html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'], }
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

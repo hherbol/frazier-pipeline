@@ -42,3 +42,10 @@ For anymore information on documentation, the tutorial follwed can be found here
 .. _pip: https://pip.pypa.io/en/stable/installing/
 .. _ReStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
 .. _here: https://daler.github.io/sphinxdoc-test/includeme.html
+
+Using FPL
+------------------------------
+
+Once installed, FPL can be used to automate some work.  There are three features to FPL:
+
+- 

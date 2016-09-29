@@ -4,17 +4,16 @@
 import os, time
 import cPickle as pickle
 
-# fpl Imports
-import fpl_lmp_large, fpl_lmp_small, fpl_orca, fpl_utils #, fpl_calc
-
 # Clancelot Imports
-import jobs
+from joust import Joust
+import structures
 
-class fpl_job:
+# Frazier Pipeline Imports
+import fpl_constants
+
+class fpl_job(Joust):
 	py_on_queue = '''import os, time
 import cPickle as pickle
-
-import fpl_lmp_large, fpl_lmp_small, fpl_orca
 
 os.system("rm $THIS_PY_FILE$")
 fptr = open("$FPL_JOBS_PICKLE$")
@@ -22,86 +21,79 @@ fpl_job = pickle.load(fptr)
 fpl_job.start(on_queue=None)
 '''
 
-	def __init__(self, run_name, solvent_name, solute=None, seed=1, num_solvents=25, path=os.getcwd()+"/", cml_dir=os.getcwd()+"/cml/", extra={},
-                 bl_rl = 10000,
-                 ll_rl = 15000,
-                 route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
-                 extra_section = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end",
-                 implicit_solvent = True,
-                 dft_params = {"queue":"long", "mem":5000, "procs":1, "charge":0, "xhost":None},
-                 pysub_params = {"queue":"batch", "procs":1, "xhost":None},
-		         debug=False):
+	def __init__(self, run_name, solvent_name, solute, system=None, queue=None, procs=1, mem=1000,
+				 priority=100, xhosts=None):
+		"""
+		The object housing all parameters for simulations, as well as the
+		workflow_manager.
+
+		**Parameters**
+
+		**Returns**
+
+			This :class:`fpl.fpl_job` object.
+		"""
+		Joust.__init__(self, run_name, system=None, queue=None, procs=1, mem=1000,
+				 priority=100, xhosts=None)
+
+		# Main system information is here
 		self.run_name = run_name
-		self.solvent_name = solvent_name
 		self.solute = solute
-		self.seed = seed
-		self.num_solvents = num_solvents
+		self.solvent_name = solvent_name
+		self.num_solvents = 10
 
-		self.path = path
-		if not self.path.endswith("/"): self.path += "/"
-		self.cml_dir = cml_dir
-		if not self.cml_dir.endswith("/"): self.cml_dir += "/"
+		# Paths are here
+		self.HOME_DIR = os.getcwd()+"/"		
+		self.cml_dir = os.getcwd()+"/cml/"
 
-		self.bl_rl = bl_rl
-		self.ll_rl = ll_rl
+		# Simulation parameters are here
+		self.queue = None
+		self.procs = 1
+		self.mem = 1000
+		self.priority = 100
+		self.xhosts = None
+		self.email = None
+		self.pair_coeffs_included = True
+		self.hybrid_pair = False
+		self.hybrid_angle = False
+		self.xyz_file = ''
+		self.trj_file = ''
+		self.read_atoms = True
+		self.read_timesteps = True
+		self.read_num_atoms = True
+		self.read_box_bounds = True
 
-		self.extra = extra
-		self.route = route
-		self.extra_section = extra_section
-		self.implicit_solvent = implicit_solvent
-		self.dft_params = dft_params
-		self.pysub_params = pysub_params
-		self.debug = debug
+		# LAMMPs parameters are here
+		self.lmp_run_len = 2000
+		self.seed = 12345
+		self.extra = {}
 
-		self.finished = False
-		self.enthalpy_of_solvation = None
+		# DFT Parameters are here
+		self.route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"
+		self.extra_section = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end"
+		self.implicit_solvent = True
+		self.dft_params = {"queue":"long", "mem":5000, "procs":1, "charge":0, "xhost":None}
+		self.pysub_params = {"queue":"batch", "procs":1, "xhost":None}
 
-	def read_in_defaults(fptr):
-		raise Exception("THIS HASN'T BEEN DONE")
+		# Other parameters are here
+		self.debug = False
 
-	def wait_till_finished(self, t=60):
-		while self.run_name in jobs.get_all_jobs():
-			time.sleep(60)
-		while self.run_name+"_dft" in jobs.get_all_jobs():
-			time.sleep(60)
-		self.finished = True
+	def generate_system(self):
+		"""
+		Generate a system of solute + solvents using Packmol.
 
-	def is_finished(self):
-		jlist = jobs.get_all_jobs()
-		self.finished = (self.run_name+"_dft" not in jlist) and (self.run_name not in jlist)
-		return self.finished
+		**Returns**
 
-	def start(self, on_queue=False):
-		if not self.path.endswith("/"): self.path += "/"
+			None
+		"""
+		## Generate empty system
+		system = structures.System(box_size=(25, 25, 25), name=self.run_name)
+		## Get structures for solvent and solute
+		solvent = structures.Molecule(self.cml_dir+self.solvent_name, extra_parameters=self.extra, allow_errors=True)
+		if self.solute is not None:
+			solute = structures.Molecule(self.cml_dir+self.solute, test_charges=False, allow_errors=True)
+			system.add(solute)
+		## Pack the system
+		system.packmol((solvent,), (1,), fpl_constants.solvent[self.solvent_name]["density"], self.seed)
 
-		if not on_queue:
-			# Run jobs here
-			print("\n\t\t\tRUNNING BIG\n")
-			system = fpl_lmp_large.job(self.run_name+"_large", self.solvent_name, solute=self.solute, seed=self.seed, run_len=self.bl_rl, path=self.path, cml_dir=self.cml_dir, extra=self.extra, debug=self.debug)
-			print("\n\t\t\tRUNNING SMALL\n")
-			system = fpl_lmp_small.job(self.run_name+"_small", self.run_name+"_large", system, self.solvent_name, solute=self.solute, seed=self.seed, run_len=self.ll_rl, num_solvents=self.num_solvents, path=self.path, cml_dir=self.cml_dir, extra=self.extra, debug=self.debug)
-			print("\n\t\t\tRUNNING DFT\n")
-			fpl_orca.job(self.run_name+"_dft", self.run_name+"_small", system, self.solvent_name, path=self.path,
-						route = self.route,
-						extra_section = self.extra_section,
-						implicit_solvent = self.implicit_solvent,
-						dft_params = self.dft_params,
-						debug=self.debug)
-		else:
-			if not os.path.exists(self.path+"fpl_jobs"):
-				os.mkdir(self.path+"fpl_jobs")
-			f_pickle = self.path+"fpl_jobs/"+self.run_name+".pickle"
-			py_file = self.path+self.run_name+".py"
-			pickle.dump(self, open(f_pickle, 'w'))
-			self.py_on_queue = fpl_utils.input_variable("$FPL_JOBS_PICKLE$", f_pickle, self.py_on_queue)
-			self.py_on_queue = fpl_utils.input_variable("$THIS_PY_FILE$", py_file, self.py_on_queue)
-			f_py_file = open(py_file, 'w')
-			f_py_file.write(self.py_on_queue)
-			f_py_file.close()
-			jobs.pysub(self.run_name, nprocs=self.pysub_params["procs"], queue=self.pysub_params["queue"], xhost=self.pysub_params["xhost"], path=os.getcwd(), remove_nbs=True)
-
-		# Calculate all output here
-		#self.enthalpy_of_solvation = fpl_calc.get_solvation()
-
-		# Done, so specify we're done
-		
+		self.system = system

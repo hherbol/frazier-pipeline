@@ -50,7 +50,7 @@ Using FPL
 
 Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, and (4) equilibrate in DFT using Orca.
 
-..code-block::python
+.. code-block:: python
 
 	import os
 	import fpl

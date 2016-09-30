@@ -57,6 +57,8 @@
 <blockquote>
 <div>cd ~; git clone <a class="reference external" href="mailto:git&#37;&#52;&#48;github&#46;com">git<span>&#64;</span>github<span>&#46;</span>com</a>:hherbol/frazier-pipeline.git</div></blockquote>
 <p>Note, you&#8217;ll also have to append the frazier-pipeline/pys folder to your PYTHONPATH variable.</p>
+<blockquote>
+<div>echo &#8216;nexport PYTHONPATH=&#8221;/PATH/TO/FRAZIER/PIPELINE/pys:$PYTHONPATH&#8221;&#8217; &gt;&gt; ~/.zshrc</div></blockquote>
 </div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
@@ -79,10 +81,32 @@
 </div>
 <div class="section" id="using-fpl">
 <h2>Using FPL<a class="headerlink" href="#using-fpl" title="Permalink to this headline">¶</a></h2>
-<p>Once installed, FPL can be used to automate some work.  There are three features to FPL:</p>
-<ul class="simple">
-<li></li>
-</ul>
+<p>Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, and (4) equilibrate in DFT using Orca.</p>
+<p>..code-block::python</p>
+<blockquote>
+<div><p>import os
+import fpl
+from fpl_lmp_large import job as lmp_large_job</p>
+<p>import time, datetime</p>
+<p>solute = &#8220;pb2+&#8221;
+solvent = &#8220;THTO&#8221;
+run_name = &#8220;%s_%s&#8221; % (solvent, solute)</p>
+<p># Generate initial object
+fpl_obj = fpl.fpl_job(run_name, solvent, solute)</p>
+<p># Set simulation parameters for system here
+fpl_obj.num_solvents=8</p>
+<p># Generate system
+fpl_obj.generate_system()</p>
+<p># Set simulation parameters for lammps here
+fpl_obj.queue=None
+fpl_obj.procs=1</p>
+<p># Add the task here
+fpl_obj.add_task(</p>
+<blockquote>
+<div>lmp_large_job(fpl_obj)
+)</div></blockquote>
+<p>fpl_obj.start()</p>
+</div></blockquote>
 </div>
 </div>
 

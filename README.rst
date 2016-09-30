@@ -53,12 +53,13 @@ Once installed, FPL can be used to automate some work.  The following is an exam
 .. code-block:: python
 
 	import os
+
 	import fpl
 	from fpl_lmp_large import job as lmp_large_job
+	from fpl_lmp_small import job as lmp_small_job
+	from fpl_orca import job as orca_job
 
-	import time, datetime
-
-	####################
+	########################################
 	solute = "pb2+"
 	solvent = "THTO"
 	run_name = "%s_%s" % (solvent, solute)
@@ -66,22 +67,54 @@ Once installed, FPL can be used to automate some work.  The following is an exam
 	# Generate initial object
 	fpl_obj = fpl.fpl_job(run_name, solvent, solute)
 
-	# Set simulation parameters for system here
-	fpl_obj.num_solvents=8
+	# Set parameters
+	fpl_obj.cml_dir="/fs/home/hch54/frazier-pipeline/cml/"
+	fpl_obj.num_solvents=1
 
 	# Generate system
 	fpl_obj.generate_system()
 
-	# Set simulation parameters for lammps here
-	fpl_obj.queue=None
-	fpl_obj.procs=1
+	########################################
+	# Add the tasks here
 
-	# Add the task here
+	## Task 1 - Large Lammps Simulation
+	### PARAMETERS
+	task1 = run_name + "_large_lammps"
+	fpl_obj.queue=None # Run locally
+	fpl_obj.procs=1 # On only 1 processor
+	fpl_obj.lmp_run_len=0 # For debugging, only run for 1 timestep
+	fpl_obj.trj_file=None # No trajectory file
+	### ADD TASK
 	fpl_obj.add_task(
-		lmp_large_job(fpl_obj)
+		task1, lmp_large_job(fpl_obj, task1)
 		)
 
+	## Task 2 - Small Lammps Simulation
+	### PARAMETERS
+	task2 = run_name + "_small_lammps"
+	fpl_obj.queue=None
+	fpl_obj.procs=1
+	fpl_obj.lmp_run_len=2000
+	### ADD TASK
+	fpl_obj.add_task(
+		task2, lmp_small_job(fpl_obj, task2)
+		)
+
+	## Task 3 - Orca Simulation
+	### PARAMETERS
+	task3 = run_name + "_orca"
+	fpl_obj.queue="batch" # Run on the queue
+	#fpl_obj.xhosts="whale" # Run on whale only
+	fpl_obj.procs=4
+	### ADD TASK
+	fpl_obj.add_task(
+		task3, orca_job(fpl_obj, task3)
+		)
+
+	########################################
+
+	# Run the simulation here
 	fpl_obj.start()
 
-	####################
+	########################################
 

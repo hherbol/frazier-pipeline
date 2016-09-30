@@ -82,31 +82,40 @@
 <div class="section" id="using-fpl">
 <h2>Using FPL<a class="headerlink" href="#using-fpl" title="Permalink to this headline">¶</a></h2>
 <p>Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, and (4) equilibrate in DFT using Orca.</p>
-<p>..code-block::python</p>
-<blockquote>
-<div><p>import os
-import fpl
-from fpl_lmp_large import job as lmp_large_job</p>
-<p>import time, datetime</p>
-<p>solute = &#8220;pb2+&#8221;
-solvent = &#8220;THTO&#8221;
-run_name = &#8220;%s_%s&#8221; % (solvent, solute)</p>
-<p># Generate initial object
-fpl_obj = fpl.fpl_job(run_name, solvent, solute)</p>
-<p># Set simulation parameters for system here
-fpl_obj.num_solvents=8</p>
-<p># Generate system
-fpl_obj.generate_system()</p>
-<p># Set simulation parameters for lammps here
-fpl_obj.queue=None
-fpl_obj.procs=1</p>
-<p># Add the task here
-fpl_obj.add_task(</p>
-<blockquote>
-<div>lmp_large_job(fpl_obj)
-)</div></blockquote>
-<p>fpl_obj.start()</p>
-</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">fpl</span>
+<span class="kn">from</span> <span class="nn">fpl_lmp_large</span> <span class="kn">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_large_job</span>
+
+<span class="kn">import</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">datetime</span>
+
+<span class="c1">####################</span>
+<span class="n">solute</span> <span class="o">=</span> <span class="s2">&quot;pb2+&quot;</span>
+<span class="n">solvent</span> <span class="o">=</span> <span class="s2">&quot;THTO&quot;</span>
+<span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solvent</span><span class="p">,</span> <span class="n">solute</span><span class="p">)</span>
+
+<span class="c1"># Generate initial object</span>
+<span class="n">fpl_obj</span> <span class="o">=</span> <span class="n">fpl</span><span class="o">.</span><span class="n">fpl_job</span><span class="p">(</span><span class="n">run_name</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">solute</span><span class="p">)</span>
+
+<span class="c1"># Set simulation parameters for system here</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">num_solvents</span><span class="o">=</span><span class="mi">8</span>
+
+<span class="c1"># Generate system</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">generate_system</span><span class="p">()</span>
+
+<span class="c1"># Set simulation parameters for lammps here</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="bp">None</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
+
+<span class="c1"># Add the task here</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span>
+        <span class="n">lmp_large_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">)</span>
+        <span class="p">)</span>
+
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1">####################</span>
+</pre></div>
+</div>
 </div>
 </div>
 

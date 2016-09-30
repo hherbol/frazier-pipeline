@@ -16,6 +16,8 @@ And then cloning this project:
 
 Note, you'll also have to append the frazier-pipeline/pys folder to your PYTHONPATH variable.
 
+	echo '\nexport PYTHONPATH="/PATH/TO/FRAZIER/PIPELINE/pys:$PYTHONPATH"' >> ~/.zshrc
+
 Documentation
 ------------------------------
 
@@ -46,6 +48,40 @@ For anymore information on documentation, the tutorial follwed can be found here
 Using FPL
 ------------------------------
 
-Once installed, FPL can be used to automate some work.  There are three features to FPL:
+Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, and (4) equilibrate in DFT using Orca.
 
-- 
+..code-block::python
+
+	import os
+	import fpl
+	from fpl_lmp_large import job as lmp_large_job
+
+	import time, datetime
+
+	####################
+	solute = "pb2+"
+	solvent = "THTO"
+	run_name = "%s_%s" % (solvent, solute)
+
+	# Generate initial object
+	fpl_obj = fpl.fpl_job(run_name, solvent, solute)
+
+	# Set simulation parameters for system here
+	fpl_obj.num_solvents=8
+
+	# Generate system
+	fpl_obj.generate_system()
+
+	# Set simulation parameters for lammps here
+	fpl_obj.queue=None
+	fpl_obj.procs=1
+
+	# Add the task here
+	fpl_obj.add_task(
+		lmp_large_job(fpl_obj)
+		)
+
+	fpl_obj.start()
+
+	####################
+

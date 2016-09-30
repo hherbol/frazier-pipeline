@@ -71,9 +71,12 @@ fpl_job.start(on_queue=None)
 		# DFT Parameters are here
 		self.route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"
 		self.extra_section = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end"
+		self.grad = False
+		self.charge = None
+		self.multiplicity = None
+		self.charge_and_multiplicity = '0 1'
+		self.previous = None   
 		self.implicit_solvent = True
-		self.dft_params = {"queue":"long", "mem":5000, "procs":1, "charge":0, "xhost":None}
-		self.pysub_params = {"queue":"batch", "procs":1, "xhost":None}
 
 		# Other parameters are here
 		self.debug = False

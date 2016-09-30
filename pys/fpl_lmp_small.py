@@ -1,6 +1,7 @@
 # Code for small lammps simulation
 
 # Python Imports
+import numpy as np
 
 # fpl Imports
 import fpl_utils
@@ -18,6 +19,15 @@ import lammps_job
 #     job() will return None if failure at any point
 #
 #
+
+def callback_grab_final(fpl_obj):
+	elements_by_index = fpl_utils.get_xyz_elems(fpl_obj.task_order[0])
+	xyz = fpl_obj.data[-1]
+	## Convert Ba to Pb (we had used Ba in LAMMPs, but in reality we want Pb)
+	for a,b in zip(fpl_obj.system.atoms,xyz[-1]):
+		a.x, a.y, a.z, a.element = b.x, b.y, b.z, elements_by_index[b.element] if elements_by_index[b.element] != "Ba" else "Pb"
+		if any( [np.isnan(x) for x in (a.x,a.y,a.z)] ):
+			raise Exception("Error on small lammps callback.")
 
 # TODO - Generalize where we find the solute. Currently we assume "Pb" is the solute and we find the molecule with the "Pb" element. What if it isn't in the solute though?
 def job(fpl_obj, task_name):
@@ -92,5 +102,7 @@ write_restart $RUN_NAME$.restart'''
 		read_timesteps=fpl_obj.read_timesteps,
 		read_num_atoms=fpl_obj.read_num_atoms,
 		read_box_bounds=fpl_obj.read_box_bounds)
+
+	small_lammps_task.callback = callback_grab_final
 
 	return small_lammps_task

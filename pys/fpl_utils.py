@@ -9,7 +9,7 @@ def input_variable(s_id, var, s):
 	return s
 
 def get_xyz_elems(run_name):
-	data = open(run_name+'.data').read()
+	data = open("lammps/%s/%s.data" % (run_name, run_name)).read()
 	start = data.index('Masses')
 	try:
 		end = data.index('Pair Coeffs')

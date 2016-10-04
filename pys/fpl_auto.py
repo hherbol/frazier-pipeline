@@ -1,4 +1,7 @@
 import os
+import types
+
+import jobs
 
 import fpl
 import fpl_calc
@@ -6,7 +9,29 @@ from fpl_lmp_large import job as lmp_large_job
 from fpl_lmp_small import job as lmp_small_job
 from fpl_orca import job as orca_job
 
-def get_enthalpy_solvation(solute, solvent):
+def get_enthalpy_solvation(solute, solvent, on_queue=False, queue="batch", nprocs="1", xhost=None):
+	if on_queue:
+		pysub_str = """import fpl_auto
+e_solv = fpl_auto.get_enthalpy_solvation("$SOLUTE","$SOLVENT")
+print e_solv
+"""
+		pysub_str = pysub_str.replace("$SOLUTE",solute)
+		pysub_str = pysub_str.replace("$SOLVENT",solvent)
+		job_name = "%s_%s.py" % (solute,solvent)
+		fptr = open(job_name, "w")
+		fptr.write(pysub_str)
+		fptr.close()
+		running_job = jobs.pysub(job_name, nprocs=nprocs, queue=queue, xhost=xhost, path=os.getcwd(), remove_sub_script=True)
+		def enthalpy(self):
+			if not self.is_finished():
+				return None
+			else:
+				H = float(open(self.name+".log", "r").read().strip().split("\n")[-1])
+				return H
+		running_job.enthalpy = types.MethodType( enthalpy, running_job)
+
+		return running_job
+
 	########################################
 	#solute = "pb2+"
 	#solvent = "THTO"

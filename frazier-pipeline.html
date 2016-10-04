@@ -81,24 +81,17 @@
 </div>
 <div class="section" id="using-fpl">
 <h2>Using FPL<a class="headerlink" href="#using-fpl" title="Permalink to this headline">¶</a></h2>
-<p>Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, and (4) equilibrate in DFT using Orca.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-
-<span class="kn">import</span> <span class="nn">fpl</span>
-<span class="kn">from</span> <span class="nn">fpl_lmp_large</span> <span class="kn">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_large_job</span>
-<span class="kn">from</span> <span class="nn">fpl_lmp_small</span> <span class="kn">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_small_job</span>
-<span class="kn">from</span> <span class="nn">fpl_orca</span> <span class="kn">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">orca_job</span>
-
-<span class="c1">########################################</span>
+<p>Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, (4) equilibrate in DFT using Orca, and (5) calculate the enthalpy of solvation.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">########################################</span>
 <span class="n">solute</span> <span class="o">=</span> <span class="s2">&quot;pb2+&quot;</span>
 <span class="n">solvent</span> <span class="o">=</span> <span class="s2">&quot;THTO&quot;</span>
 <span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solvent</span><span class="p">,</span> <span class="n">solute</span><span class="p">)</span>
 
 <span class="c1"># Generate initial object</span>
 <span class="n">fpl_obj</span> <span class="o">=</span> <span class="n">fpl</span><span class="o">.</span><span class="n">fpl_job</span><span class="p">(</span><span class="n">run_name</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">solute</span><span class="p">)</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">cml_dir</span><span class="o">=</span><span class="s2">&quot;/fs/home/hch54/frazier-pipeline/cml/&quot;</span>
 
 <span class="c1"># Set parameters</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">cml_dir</span><span class="o">=</span><span class="s2">&quot;/fs/home/hch54/frazier-pipeline/cml/&quot;</span>
 <span class="n">fpl_obj</span><span class="o">.</span><span class="n">num_solvents</span><span class="o">=</span><span class="mi">1</span>
 
 <span class="c1"># Generate system</span>
@@ -110,43 +103,86 @@
 <span class="c1">## Task 1 - Large Lammps Simulation</span>
 <span class="c1">### PARAMETERS</span>
 <span class="n">task1</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_large_lammps&quot;</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="bp">None</span> <span class="c1"># Run locally</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span> <span class="c1"># On only 1 processor</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">0</span> <span class="c1"># For debugging, only run for 1 timestep</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">trj_file</span><span class="o">=</span><span class="bp">None</span> <span class="c1"># No trajectory file</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="bp">None</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">10000</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">trj_file</span><span class="o">=</span><span class="bp">None</span>
 <span class="c1">### ADD TASK</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span>
-        <span class="n">task1</span><span class="p">,</span> <span class="n">lmp_large_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task1</span><span class="p">)</span>
-        <span class="p">)</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_large_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task1</span><span class="p">)</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 
 <span class="c1">## Task 2 - Small Lammps Simulation</span>
 <span class="c1">### PARAMETERS</span>
 <span class="n">task2</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_small_lammps&quot;</span>
 <span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="bp">None</span>
 <span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">2000</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">10000</span>
 <span class="c1">### ADD TASK</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span>
-        <span class="n">task2</span><span class="p">,</span> <span class="n">lmp_small_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task2</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="c1"># Note, you can always overwrite the callback function</span>
+        <span class="c1"># tsk = lmp_small_job(fpl_obj, task2)</span>
+        <span class="c1"># tsk.callback = None</span>
+        <span class="c1"># fpl_obj.add_task( task2, tsk )</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_small_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task2</span><span class="p">)</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 
 <span class="c1">## Task 3 - Orca Simulation</span>
 <span class="c1">### PARAMETERS</span>
 <span class="n">task3</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_orca&quot;</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span> <span class="c1"># Run on the queue</span>
-<span class="c1">#fpl_obj.xhosts=&quot;whale&quot; # Run on whale only</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span>
 <span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">4</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route</span> <span class="o">=</span> <span class="s2">&quot;! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt&quot;</span>
 <span class="c1">### ADD TASK</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span>
-        <span class="n">task3</span><span class="p">,</span> <span class="n">orca_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task3</span><span class="p">)</span>
-        <span class="p">)</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">orca_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task3</span><span class="p">)</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 
 <span class="c1">########################################</span>
 
 <span class="c1"># Run the simulation here</span>
-<span class="n">fpl_obj</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 <span class="c1">########################################</span>
+
+<span class="c1">## Task 4 - Calculate Enthalpy of Solvation</span>
+<span class="c1">### PARAMETERS</span>
+<span class="n">task4</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_Hsolv&quot;</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="s2">&quot;batch&quot;</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route</span> <span class="o">=</span> <span class="s2">&quot;! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv&quot;</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">extra_section</span> <span class="o">=</span> <span class="s2">&quot;%basis aux auto NewECP Pb </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewECP Cs </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewGTO S </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end end&quot;</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity</span> <span class="o">=</span> <span class="s2">&quot;0 1&quot;</span>
+
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route_solute</span> <span class="o">=</span> <span class="s2">&quot;! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv&quot;</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">extra_section_solute</span> <span class="o">=</span> <span class="s2">&quot;%basis aux auto NewECP Pb </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewECP Cs </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end end&quot;</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity_solute</span> <span class="o">=</span> <span class="s2">&quot;0 1&quot;</span>
+
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route_solvent</span> <span class="o">=</span> <span class="s2">&quot;! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv&quot;</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">extra_section_solvent</span> <span class="o">=</span> <span class="s2">&quot;%basis aux auto NewGTO S </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end end&quot;</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity_solvent</span> <span class="o">=</span> <span class="s2">&quot;0 1&quot;</span>
+
+<span class="c1">### ADD TASK</span>
+<span class="n">tasks</span> <span class="o">=</span> <span class="n">fpl_calc</span><span class="o">.</span><span class="n">enthalpy_solvation</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task4</span><span class="p">)</span>
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tasks</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">fpl_obj</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">H_solv</span> <span class="o">=</span> <span class="n">fpl_calc</span><span class="o">.</span><span class="n">post_enthalpy_solvation</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To make things easier, this whole process can be automated for varying solute, solvent combinations by simply using the fpl_auto class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">fpl_auto</span>
+
+<span class="n">e_solv</span> <span class="o">=</span> <span class="n">fpl_auto</span><span class="o">.</span><span class="n">get_enthalpy_solvation</span><span class="p">(</span><span class="s2">&quot;pb2+&quot;</span><span class="p">,</span><span class="s2">&quot;THTO&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">e_solv</span>
+</pre></div>
+</div>
+<p>Or, if you want to submit it to the queue:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">fpl_auto</span>
+
+<span class="n">e_solv</span> <span class="o">=</span> <span class="n">fpl_auto</span><span class="o">.</span><span class="n">get_enthalpy_solvation</span><span class="p">(</span><span class="s2">&quot;pb2+&quot;</span><span class="p">,</span><span class="s2">&quot;THTO&quot;</span><span class="p">,</span><span class="n">on_queue</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">e_solv</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">e_solv</span><span class="o">.</span><span class="n">enthalpy</span><span class="p">()</span>
+<span class="k">print</span> <span class="n">H</span>
 </pre></div>
 </div>
 </div>

@@ -48,16 +48,9 @@ For anymore information on documentation, the tutorial follwed can be found here
 Using FPL
 ------------------------------
 
-Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, and (4) equilibrate in DFT using Orca.
+Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, (4) equilibrate in DFT using Orca, and (5) calculate the enthalpy of solvation.
 
 .. code-block:: python
-
-	import os
-
-	import fpl
-	from fpl_lmp_large import job as lmp_large_job
-	from fpl_lmp_small import job as lmp_small_job
-	from fpl_orca import job as orca_job
 
 	########################################
 	solute = "pb2+"
@@ -66,9 +59,9 @@ Once installed, FPL can be used to automate some work.  The following is an exam
 
 	# Generate initial object
 	fpl_obj = fpl.fpl_job(run_name, solvent, solute)
+	fpl_obj.cml_dir="/fs/home/hch54/frazier-pipeline/cml/"
 
 	# Set parameters
-	fpl_obj.cml_dir="/fs/home/hch54/frazier-pipeline/cml/"
 	fpl_obj.num_solvents=1
 
 	# Generate system
@@ -80,41 +73,87 @@ Once installed, FPL can be used to automate some work.  The following is an exam
 	## Task 1 - Large Lammps Simulation
 	### PARAMETERS
 	task1 = run_name + "_large_lammps"
-	fpl_obj.queue=None # Run locally
-	fpl_obj.procs=1 # On only 1 processor
-	fpl_obj.lmp_run_len=0 # For debugging, only run for 1 timestep
-	fpl_obj.trj_file=None # No trajectory file
+	fpl_obj.queue=None
+	fpl_obj.procs=1
+	fpl_obj.lmp_run_len=10000
+	fpl_obj.trj_file=None
 	### ADD TASK
-	fpl_obj.add_task(
-		task1, lmp_large_job(fpl_obj, task1)
-		)
+	task = lmp_large_job(fpl_obj, task1)
+	fpl_obj.add_task(task)
 
 	## Task 2 - Small Lammps Simulation
 	### PARAMETERS
 	task2 = run_name + "_small_lammps"
 	fpl_obj.queue=None
 	fpl_obj.procs=1
-	fpl_obj.lmp_run_len=2000
+	fpl_obj.lmp_run_len=10000
 	### ADD TASK
-	fpl_obj.add_task(
-		task2, lmp_small_job(fpl_obj, task2)
-		)
+		# Note, you can always overwrite the callback function
+		# tsk = lmp_small_job(fpl_obj, task2)
+		# tsk.callback = None
+		# fpl_obj.add_task( task2, tsk )
+	task = lmp_small_job(fpl_obj, task2)
+	fpl_obj.add_task(task)
 
 	## Task 3 - Orca Simulation
 	### PARAMETERS
 	task3 = run_name + "_orca"
-	fpl_obj.queue="batch" # Run on the queue
-	#fpl_obj.xhosts="whale" # Run on whale only
+	fpl_obj.queue="batch"
 	fpl_obj.procs=4
+	fpl_obj.route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"
 	### ADD TASK
-	fpl_obj.add_task(
-		task3, orca_job(fpl_obj, task3)
-		)
+	task = orca_job(fpl_obj, task3)
+	fpl_obj.add_task(task)
 
 	########################################
 
 	# Run the simulation here
-	fpl_obj.start()
+	fpl_obj.start(save=False)
 
 	########################################
 
+	## Task 4 - Calculate Enthalpy of Solvation
+	### PARAMETERS
+	task4 = run_name + "_Hsolv"
+	fpl_obj.queue = "batch"
+	fpl_obj.procs = 4
+
+	fpl_obj.route = "! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv"
+	fpl_obj.extra_section = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end" 
+	fpl_obj.charge_and_multiplicity = "0 1"
+
+	fpl_obj.route_solute = "! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv"
+	fpl_obj.extra_section_solute = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end end" 
+	fpl_obj.charge_and_multiplicity_solute = "0 1"
+
+	fpl_obj.route_solvent = "! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv"
+	fpl_obj.extra_section_solvent = "%basis aux auto NewGTO S \"def2-TZVP\" end end" 
+	fpl_obj.charge_and_multiplicity_solvent = "0 1"
+
+	### ADD TASK
+	tasks = fpl_calc.enthalpy_solvation(fpl_obj, task4)
+	fpl_obj.add_task(tasks, parallel=True)
+
+	fpl_obj.start(save=False)
+
+	H_solv = fpl_calc.post_enthalpy_solvation(fpl_obj)
+
+To make things easier, this whole process can be automated for varying solute, solvent combinations by simply using the fpl_auto class:
+
+.. code-block:: python
+
+	import fpl_auto
+
+	e_solv = fpl_auto.get_enthalpy_solvation("pb2+","THTO")
+	print e_solv
+
+Or, if you want to submit it to the queue:
+
+.. code-block:: python
+
+	import fpl_auto
+
+	e_solv = fpl_auto.get_enthalpy_solvation("pb2+","THTO",on_queue=True)
+	e_solv.wait()
+	H = e_solv.enthalpy()
+	print H

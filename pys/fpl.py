@@ -5,7 +5,7 @@ import os, time
 import cPickle as pickle
 
 # Clancelot Imports
-from joust import Joust
+from fpl_joust import Joust
 import structures
 
 # Frazier Pipeline Imports

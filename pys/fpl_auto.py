@@ -10,6 +10,9 @@ from fpl_lmp_small import job as lmp_small_job
 from fpl_orca import job as orca_job
 
 def get_enthalpy_solvation(solute, solvent, num_solvents=1, on_queue=False, queue="batch", nprocs="1", xhost=None, unit="kT_300", charge_and_multiplicity="0 1", charge_and_multiplicity_solute="0 1", charge_and_multiplicity_solvent="0 1"):
+	if num_solvents < 1:
+		raise Exception("You must have a number of solvents greater than or equal to 1")
+
 	if on_queue:
 		pysub_str = """import fpl_auto
 e_solv = fpl_auto.get_enthalpy_solvation("$SOLUTE","$SOLVENT", num_solvents=$NUM_SOLVENTS, unit="$UNIT", charge_and_multiplicity="$CHARGE_AND_MULTIPLICITY")

@@ -92,7 +92,7 @@ def _read_dump(fptr, ext=".dump", unwrapped=True):
 			z = float(b[column[s_z]])
 			if "id" in column: index = int(b[column["id"]])
 			else: index = None
-			if "type" in column: index = b[column["type"]]
+			if "type" in column: a_type = int(b[column["type"]])
 			else: a_type = None
 			a = structures.Atom(elem, x, y, z, index=index, type_index=a_type)
 			frame.append(a)
@@ -112,7 +112,7 @@ boundary p p p
 read_data $RUN_NAME$.data
 
 #dump 1 all xyz 100 $RUN_NAME$.xyz
-dump 2 all custom 100 $RUN_NAME$.xyz step element xu yu zu
+dump 2 all custom 100 $RUN_NAME$.xyz id type element xu yu zu
 
 fix av all ave/time 1 1000 1000 c_thermo_pe
 thermo_style custom step f_av pe temp press

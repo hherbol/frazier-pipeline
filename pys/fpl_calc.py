@@ -2,10 +2,15 @@
 import copy
 import numpy as np
 
+# FPL imports
+import fpl_constants
+import fpl_utils
+
 # Clancelot Imports
 import structures
 import geometry
 import units
+import lammps_job
 from joust_task import _jtask
 from lammps_job import lmp_task
 from orca import orca_task
@@ -46,6 +51,70 @@ def _get_solute_index(fpl_obj):
 
 	return index_of_solute
 
+def _minimize_solvent(fpl_obj, run_name):
+
+	input_script = '''units real
+atom_style full
+pair_style lj/cut/coul/dsf 0.05 10.0 10.0
+bond_style harmonic
+angle_style harmonic
+dihedral_style opls
+
+boundary p p p
+read_data $RUN_NAME$.data
+
+dump 1 all xyz 100 $RUN_NAME$.xyz
+
+fix av all ave/time 1 1000 1000 c_thermo_pe
+thermo_style custom step f_av pe temp press
+thermo 1000
+
+minimize 1.0e-4 1.0e-6 100 1000
+
+velocity all create 300.0 $SEED$ rot yes dist gaussian
+
+fix motion all npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0
+
+timestep 1.0
+run $RUN_LEN$
+
+write_restart $RUN_NAME$.restart'''
+	
+	# Setup input script
+	input_script = fpl_utils.input_variable("$RUN_NAME$", run_name, input_script)
+	input_script = fpl_utils.input_variable("$SEED$", fpl_obj.seed, input_script)
+	input_script = fpl_utils.input_variable("$RUN_LEN$", fpl_obj.lmp_run_len, input_script)
+
+	## Generate empty system
+	system = structures.System(box_size=(25, 25, 25), name=fpl_obj.run_name)
+	## Get structures for solvent and solute
+	solvent = structures.Molecule(fpl_obj.cml_dir+fpl_obj.solvent_name, extra_parameters=fpl_obj.extra, allow_errors=True)
+
+	## Pack the system
+	system.packmol((solvent,), (1,), fpl_constants.solvent[fpl_obj.solvent_name]["density"], fpl_obj.seed, number=fpl_obj.num_solvents)
+	system.name = run_name
+
+	# Run simulation
+	running_job = lammps_job.job(run_name, input_script, system, queue=None, procs=1, email=None, pair_coeffs_included=True, hybrid_pair=False, hybrid_angle=False, TIP4P=False)
+	running_job.wait()
+
+	# Read in data
+	data = lammps_job.read(run_name, trj_file=fpl_obj.trj_file,
+			   xyz_file=fpl_obj.xyz_file,
+			   read_atoms=fpl_obj.read_atoms,
+			   read_timesteps=fpl_obj.read_timesteps,
+			   read_num_atoms=fpl_obj.read_num_atoms,
+			   read_box_bounds=fpl_obj.read_box_bounds)
+	xyz = data[-1]
+
+	## Store end of last LAMMPs simulation to system.atoms variable
+	for a,b in zip(system.atoms, xyz[-1]):
+		a.x, a.y, a.z = b.x, b.y, b.z
+		if any( [np.isnan(x) for x in (a.x,a.y,a.z)] ):
+			return None
+
+	return system
+
 def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
 	# Enthalpy of solvation involves running 3 simulations in parallel
 	#  1. Full System
@@ -65,7 +134,10 @@ def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
 	# Generate solute only system and solvent only system
 	index_of_solute = _get_solute_index(fpl_obj)
 	solute_system = solute_system.molecules[index_of_solute]
-	solvent_system.Remove(solvent_system.molecules[index_of_solute])
+
+	print("Starting solvent minimization")
+	solvent_system = _minimize_solvent(fpl_obj, task_name+"_pre_solv")
+	print("Ending solvent minimization")
 
 	if md_dft == "md":
 		full_task = lmp_task(task_name+"_full", full_system, queue=fpl_obj.queue, procs=fpl_obj.procs,
@@ -75,6 +147,7 @@ def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
 		solvent_task = lmp_task(task_name+"_solvent", solvent_system, queue=fpl_obj.queue, procs=fpl_obj.procs,
 			mem=fpl_obj.mem, priority=fpl_obj.priority, xhosts=fpl_obj.xhosts, callback=None)
 	else:
+		print("Generating DFT tasks for enthalpy calc")
 		full_task = orca_task(task_name+"_full", full_system, queue=fpl_obj.queue, procs=fpl_obj.procs,
 			mem=fpl_obj.mem, priority=fpl_obj.priority, xhosts=fpl_obj.xhosts, callback=None)
 		solute_task = orca_task(task_name+"_solute", solute_system, queue=fpl_obj.queue, procs=fpl_obj.procs,
@@ -83,6 +156,12 @@ def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
 			mem=fpl_obj.mem, priority=fpl_obj.priority, xhosts=fpl_obj.xhosts, callback=None)
 
 		# Set parameters
+		if fpl_obj.implicit_solvent:
+			fpl_obj.route += " COSMO"
+			fpl_obj.extra_section = "%cosmo SMD true epsilon " + str(fpl_constants.solvent[fpl_obj.solvent_name]["dielectric"]) + " end " + fpl_obj.extra_section
+			fpl_obj.route_solvent += " COSMO"
+			fpl_obj.extra_section_solvent = "%cosmo SMD true epsilon " + str(fpl_constants.solvent[fpl_obj.solvent_name]["dielectric"]) + " end " + fpl_obj.extra_section
+
 		full_task.set_parameters(
 			route = fpl_obj.route,
 			extra_section = fpl_obj.extra_section,

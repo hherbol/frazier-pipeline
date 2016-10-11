@@ -152,7 +152,7 @@ write_restart $RUN_NAME$.restart'''
 	xyz = sorted(xyz, key=lambda x: x.index)
 	
 	## Store end of last LAMMPs simulation to system.atoms variable
-	for a,b in zip(system.atoms, xyz[-1]):
+	for a,b in zip(system.atoms, xyz):
 		a.x, a.y, a.z = b.x, b.y, b.z
 		if any( [np.isnan(x) for x in (a.x,a.y,a.z)] ):
 			return None

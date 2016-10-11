@@ -1,4 +1,5 @@
 # System Imports
+import os
 import copy
 import numpy as np
 
@@ -51,6 +52,53 @@ def _get_solute_index(fpl_obj):
 
 	return index_of_solute
 
+def _read_dump(fptr, ext=".dump", unwrapped=True):
+	# Check if file exists. If not, try subfolder
+	if not os.path.exists(fptr+ext):
+		fptr = "lammps/%s/%s" % (fptr,fptr)
+		if not os.path.exists(fptr+ext):
+			raise Exception("File %s nor %s exists" % (fptr.split("/")[-1], fptr))
+	# Read in the file
+	raw_out = open(fptr+ext,"r").read()
+	# Find "ITEM: ATOMS ", this is output
+	s_find = "ITEM: ATOMS "
+	n = len(s_find)
+	# Determine what we have in this output
+	headers = raw_out[raw_out.find(s_find):].split("\n")[0].split()[2:]
+	column = {}
+	for i,h in enumerate(headers):
+		column[h] = i
+
+	# If we are getting unwrapped, specify
+	if unwrapped:
+		s_x, s_y, s_z = "xu", "yu", "zu"
+	else:
+		s_x, s_y, s_z = "x", "y", "z"
+
+	frames = []
+	while s_find in raw_out:
+		# Set pointer to start of an output line
+		raw_out = raw_out[raw_out.find(s_find)+n:]
+		# Make empty frame to store data
+		frame = []
+		# Get data set into a buffer
+		buf = raw_out[:raw_out.find("ITEM:")].split("\n")[1:-1]
+		# Store data
+		for b in buf:
+			b = b.split()
+			elem = b[column["element"]]
+			x = float(b[column[s_x]])
+			y = float(b[column[s_y]])
+			z = float(b[column[s_z]])
+			if "id" in column: index = int(b[column["id"]])
+			else: index = None
+			if "type" in column: index = b[column["type"]]
+			else: a_type = None
+			a = structures.Atom(elem, x, y, z, index=index, type_index=a_type)
+			frame.append(a)
+		frames.append(frame)
+	return frames
+
 def _minimize_solvent(fpl_obj, run_name):
 
 	input_script = '''units real
@@ -63,7 +111,8 @@ dihedral_style opls
 boundary p p p
 read_data $RUN_NAME$.data
 
-dump 1 all xyz 100 $RUN_NAME$.xyz
+#dump 1 all xyz 100 $RUN_NAME$.xyz
+dump 2 all custom 100 $RUN_NAME$.xyz step element xu yu zu
 
 fix av all ave/time 1 1000 1000 c_thermo_pe
 thermo_style custom step f_av pe temp press
@@ -98,15 +147,10 @@ write_restart $RUN_NAME$.restart'''
 	running_job = lammps_job.job(run_name, input_script, system, queue=None, procs=1, email=None, pair_coeffs_included=True, hybrid_pair=False, hybrid_angle=False, TIP4P=False)
 	running_job.wait()
 
-	# Read in data
-	data = lammps_job.read(run_name, trj_file=fpl_obj.trj_file,
-			   xyz_file=fpl_obj.xyz_file,
-			   read_atoms=fpl_obj.read_atoms,
-			   read_timesteps=fpl_obj.read_timesteps,
-			   read_num_atoms=fpl_obj.read_num_atoms,
-			   read_box_bounds=fpl_obj.read_box_bounds)
-	xyz = data[-1]
-
+	# Read in data manually
+	xyz = _read_dump(run_name,ext=".xyz",unwrapped=True)[-1]
+	xyz = sorted(xyz, key=lambda x: x.index)
+	
 	## Store end of last LAMMPs simulation to system.atoms variable
 	for a,b in zip(system.atoms, xyz[-1]):
 		a.x, a.y, a.z = b.x, b.y, b.z
@@ -134,10 +178,7 @@ def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
 	# Generate solute only system and solvent only system
 	index_of_solute = _get_solute_index(fpl_obj)
 	solute_system = solute_system.molecules[index_of_solute]
-
-	print("Starting solvent minimization")
 	solvent_system = _minimize_solvent(fpl_obj, task_name+"_pre_solv")
-	print("Ending solvent minimization")
 
 	if md_dft == "md":
 		full_task = lmp_task(task_name+"_full", full_system, queue=fpl_obj.queue, procs=fpl_obj.procs,

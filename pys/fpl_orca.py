@@ -14,10 +14,8 @@ import files, orca
 def job(fpl_obj, task_name):
 	# If route is specified by "level of theory index" take care of it here
 	if type(fpl_obj.route) is int:
-		fpl_obj.route = ["! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
-				 "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
-				 "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"][fpl_obj.route]
-		raise Exception("Currently all 0, 1, and 2 are the same (lvl 0, lowest)")
+		fpl_obj.route = fpl_constants.default_routes[fpl_obj.route]
+		#raise Exception("Currently all 0, 1, and 2 are the same (lvl 0, lowest)")
 
 	if fpl_obj.implicit_solvent:
 		fpl_obj.route += " COSMO"

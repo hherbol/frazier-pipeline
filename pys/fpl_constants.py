@@ -23,3 +23,7 @@ default_angles = {"type":structures.Struct(),
                   "style":"harmonic",
                   "e":37.5,
                   "index2s":(13, 13, 46)}
+
+default_routes = ["! OPT HF SV ECP{def2-TZVP} LooseOpt",
+         "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
+         "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"]

@@ -9,13 +9,18 @@ from fpl_lmp_large import job as lmp_large_job
 from fpl_lmp_small import job as lmp_small_job
 from fpl_orca import job as orca_job
 
-def get_enthalpy_solvation(solute, solvent, num_solvents=1, on_queue=False, queue="batch", nprocs="1", xhost=None, unit="kT_300", charge_and_multiplicity="0 1", charge_and_multiplicity_solute="0 1", charge_and_multiplicity_solvent="0 1"):
+def get_enthalpy_solvation(solute, solvent, num_solvents=1, on_queue=False,
+	queue="batch", nprocs="1", xhost=None, unit="kT_300",
+	charge_and_multiplicity="0 1", charge_and_multiplicity_solute="0 1",
+	charge_and_multiplicity_solvent="0 1", name_append="",
+	route_lvls=[1,1,1,1]):
 	if num_solvents < 1:
-		raise Exception("You must have a number of solvents greater than or equal to 1")
+		raise Exception("You must have a number of solvents greater than or\
+		equal to 1")
 
 	if on_queue:
 		pysub_str = """import fpl_auto
-e_solv = fpl_auto.get_enthalpy_solvation("$SOLUTE","$SOLVENT", num_solvents=$NUM_SOLVENTS, unit="$UNIT", charge_and_multiplicity="$CHARGE_AND_MULTIPLICITY")
+e_solv = fpl_auto.get_enthalpy_solvation("$SOLUTE","$SOLVENT", num_solvents=$NUM_SOLVENTS, unit="$UNIT", charge_and_multiplicity="$CHARGE_AND_MULTIPLICITY", name_append="$NAME_APPEND", route_lvls=$ROUTE_LVLS)
 print e_solv
 """
 		pysub_str = pysub_str.replace("$SOLUTE",solute)
@@ -23,7 +28,10 @@ print e_solv
 		pysub_str = pysub_str.replace("$NUM_SOLVENTS",str(num_solvents))
 		pysub_str = pysub_str.replace("$UNIT",unit)
 		pysub_str = pysub_str.replace("$CHARGE_AND_MULTIPLICITY",charge_and_multiplicity)
-		job_name = "%s_%s.py" % (solute,solvent)
+		pysub_str = pysub_str.replace("$NAME_APPEND",name_append)
+		pysub_str = pysub_str.replace("$ROUTE_LVLS",str(route_lvls))
+
+		job_name = "%s_%s%s.py" % (solute,solvent,name_append)
 		fptr = open(job_name, "w")
 		fptr.write(pysub_str)
 		fptr.close()
@@ -39,9 +47,8 @@ print e_solv
 		return running_job
 
 	########################################
-	#solute = "pb2+"
-	#solvent = "THTO"
 	run_name = "%s_%s" % (solvent, solute)
+	run_name += name_append
 
 	# Generate initial object
 	fpl_obj = fpl.fpl_job(run_name, solvent, solute)
@@ -86,7 +93,7 @@ print e_solv
 	task3 = run_name + "_orca"
 	fpl_obj.queue="batch"
 	fpl_obj.procs=4
-	fpl_obj.route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"
+	fpl_obj.route = route_lvls[0]
 	fpl_obj.charge_and_multiplicity = charge_and_multiplicity
 	### ADD TASK
 	task = orca_job(fpl_obj, task3)
@@ -105,16 +112,16 @@ print e_solv
 	fpl_obj.queue = "batch"
 	fpl_obj.procs = 4
 
-	fpl_obj.route = "! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 Opt SlowConv"
+	fpl_obj.route = route_lvls[1]
 	fpl_obj.extra_section = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end" 
 	fpl_obj.charge_and_multiplicity = charge_and_multiplicity
 
-	fpl_obj.route_solute = "! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 Opt SlowConv"
-	fpl_obj.extra_section_solute = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end end" 
+	fpl_obj.route_solute = route_lvls[2]
+	fpl_obj.extra_section_solute = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end" 
 	fpl_obj.charge_and_multiplicity_solute = charge_and_multiplicity_solute
 
-	fpl_obj.route_solvent = "! B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 Opt SlowConv"
-	fpl_obj.extra_section_solvent = "%basis aux auto NewGTO S \"def2-TZVP\" end end" 
+	fpl_obj.route_solvent = route_lvls[3]
+	fpl_obj.extra_section_solvent = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end" 
 	fpl_obj.charge_and_multiplicity_solvent = charge_and_multiplicity_solvent
 
 	### ADD TASK

@@ -197,6 +197,15 @@ def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
 		solvent_task = orca_task(task_name+"_solvent", solvent_system, queue=fpl_obj.queue, procs=fpl_obj.procs,
 			mem=fpl_obj.mem, priority=fpl_obj.priority, xhosts=fpl_obj.xhosts, callback=None)
 
+		# Ensure routes are correct
+		# If route is specified by "level of theory index" take care of it here
+		if type(fpl_obj.route) is int:
+			fpl_obj.route = fpl_constants.default_routes[fpl_obj.route]
+		if type(fpl_obj.route_solvent) is int:
+			fpl_obj.route_solvent = fpl_constants.default_routes[fpl_obj.route_solvent]
+		if type(fpl_obj.route_solute) is int:
+			fpl_obj.route_solute = fpl_constants.default_routes[fpl_obj.route_solute]
+
 		# Set parameters
 		if fpl_obj.implicit_solvent:
 			fpl_obj.route += " COSMO"

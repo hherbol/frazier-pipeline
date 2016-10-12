@@ -20,7 +20,11 @@ def get_enthalpy_solvation(solute, solvent, num_solvents=1, on_queue=False,
 
 	if on_queue:
 		pysub_str = """import fpl_auto
-e_solv = fpl_auto.get_enthalpy_solvation("$SOLUTE","$SOLVENT", num_solvents=$NUM_SOLVENTS, unit="$UNIT", charge_and_multiplicity="$CHARGE_AND_MULTIPLICITY", name_append="$NAME_APPEND", route_lvls=$ROUTE_LVLS)
+e_solv = fpl_auto.get_enthalpy_solvation("$SOLUTE","$SOLVENT", num_solvents=$NUM_SOLVENTS, 
+	unit="$UNIT", charge_and_multiplicity="$CHARGE_AND_MULTIPLICITY",
+	charge_and_multiplicity_solute="$CHARGE_AND_MULTIPLICITY_SOLUTE",
+	charge_and_multiplicity_solvent="$CHARGE_AND_MULTIPLICITY_SOLVENT",
+	name_append="$NAME_APPEND", route_lvls=$ROUTE_LVLS)
 print e_solv
 """
 		pysub_str = pysub_str.replace("$SOLUTE",solute)
@@ -28,6 +32,8 @@ print e_solv
 		pysub_str = pysub_str.replace("$NUM_SOLVENTS",str(num_solvents))
 		pysub_str = pysub_str.replace("$UNIT",unit)
 		pysub_str = pysub_str.replace("$CHARGE_AND_MULTIPLICITY",charge_and_multiplicity)
+		pysub_str = pysub_str.replace("$CHARGE_AND_MULTIPLICITY_SOLUTE",charge_and_multiplicity_solute)
+		pysub_str = pysub_str.replace("$CHARGE_AND_MULTIPLICITY_SOLVENT",charge_and_multiplicity_solvent)
 		pysub_str = pysub_str.replace("$NAME_APPEND",name_append)
 		pysub_str = pysub_str.replace("$ROUTE_LVLS",str(route_lvls))
 

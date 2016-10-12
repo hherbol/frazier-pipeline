@@ -52,52 +52,53 @@ def _get_solute_index(fpl_obj):
 
 	return index_of_solute
 
-def _read_dump(fptr, ext=".dump", unwrapped=True):
-	# Check if file exists. If not, try subfolder
-	if not os.path.exists(fptr+ext):
-		fptr = "lammps/%s/%s" % (fptr,fptr)
-		if not os.path.exists(fptr+ext):
-			raise Exception("File %s nor %s exists" % (fptr.split("/")[-1], fptr))
-	# Read in the file
-	raw_out = open(fptr+ext,"r").read()
-	# Find "ITEM: ATOMS ", this is output
-	s_find = "ITEM: ATOMS "
-	n = len(s_find)
-	# Determine what we have in this output
-	headers = raw_out[raw_out.find(s_find):].split("\n")[0].split()[2:]
-	column = {}
-	for i,h in enumerate(headers):
-		column[h] = i
-
-	# If we are getting unwrapped, specify
-	if unwrapped:
-		s_x, s_y, s_z = "xu", "yu", "zu"
-	else:
-		s_x, s_y, s_z = "x", "y", "z"
-
-	frames = []
-	while s_find in raw_out:
-		# Set pointer to start of an output line
-		raw_out = raw_out[raw_out.find(s_find)+n:]
-		# Make empty frame to store data
-		frame = []
-		# Get data set into a buffer
-		buf = raw_out[:raw_out.find("ITEM:")].split("\n")[1:-1]
-		# Store data
-		for b in buf:
-			b = b.split()
-			elem = b[column["element"]]
-			x = float(b[column[s_x]])
-			y = float(b[column[s_y]])
-			z = float(b[column[s_z]])
-			if "id" in column: index = int(b[column["id"]])
-			else: index = None
-			if "type" in column: a_type = int(b[column["type"]])
-			else: a_type = None
-			a = structures.Atom(elem, x, y, z, index=index, type_index=a_type)
-			frame.append(a)
-		frames.append(frame)
-	return frames
+#def _read_dump(fptr, ext=".dump", unwrapped=True):
+#	# Check if file exists. If not, try subfolder
+#	if not os.path.exists(fptr+ext):
+#		fptr = "lammps/%s/%s" % (fptr,fptr)
+#		if not os.path.exists(fptr+ext):
+#			raise Exception("File %s nor %s exists" % (fptr.split("/")[-1], fptr))
+#	# Read in the file
+#	raw_out = open(fptr+ext,"r").read()
+#	# Find "ITEM: ATOMS ", this is output
+#	s_find = "ITEM: ATOMS "
+#	n = len(s_find)
+#	# Determine what we have in this output
+#	headers = raw_out[raw_out.find(s_find):].split("\n")[0].split()[2:]
+#	column = {}
+#	for i,h in enumerate(headers):
+#		column[h] = i
+#
+#	# If we are getting unwrapped, specify
+#	if unwrapped:
+#		s_x, s_y, s_z = "xu", "yu", "zu"
+#	else:
+#		s_x, s_y, s_z = "x", "y", "z"
+#
+#	frames = []
+#	while s_find in raw_out:
+#		# Set pointer to start of an output line
+#		raw_out = raw_out[raw_out.find(s_find)+n:]
+#		# Make empty frame to store data
+#		frame = []
+#		# Get data set into a buffer
+#		buf = raw_out[:raw_out.find("ITEM:")].split("\n")[1:-1]
+#		# Store data
+#		for b in buf:
+#			b = b.split()
+#			elem = b[column["element"]]
+#			x = float(b[column[s_x]])
+#			y = float(b[column[s_y]])
+#			z = float(b[column[s_z]])
+#			if "id" in column: index = int(b[column["id"]])
+#			else: index = None
+#			if "type" in column: a_type = int(b[column["type"]])
+#			else: a_type = None
+#			a = structures.Atom(elem, x, y, z, index=index, type_index=a_type)
+#			frame = sorted(frame, key=lambda x: x.index)
+#			frame.append(a)
+#		frames.append(frame)
+#	return frames
 
 def _minimize_solvent(fpl_obj, run_name):
 
@@ -148,7 +149,7 @@ write_restart $RUN_NAME$.restart'''
 	running_job.wait()
 
 	# Read in data manually
-	xyz = _read_dump(run_name,ext=".xyz",unwrapped=True)[-1]
+	xyz = lammps_job.read_dump(run_name,ext=".xyz",unwrapped=True)[-1]
 	xyz = sorted(xyz, key=lambda x: x.index)
 	
 	## Store end of last LAMMPs simulation to system.atoms variable

@@ -9,7 +9,7 @@ solvent = "acetone"
 print("RUNNING TEST BENCH FOR %s in %s" % (solute, solvent))
 for i in range(1,10):
 	t0 = time.time()
-	e_solv = fpl_auto.get_enthalpy_solvation(solute,solvent,num_solvents=i,on_queue=True,unit="Ha",charge_and_multiplicity="2 1",charge_and_multiplicity_solvent="0 1",charge_and_multiplicity_solute="2 1",name_append="_%d"%i,route_lvls=[0,0,0,0])
+	e_solv = fpl_auto.get_enthalpy_solvation(solute,solvent,num_solvents=i,on_queue=True,unit="Ha",charge_and_multiplicity="2 1",charge_and_multiplicity_solvent="0 1",charge_and_multiplicity_solute="2 1",name_append="_%d"%i,route_lvls=[1,1,1,1])
 	e_solv.wait()
 	H = e_solv.enthalpy()
 	t = time.time()

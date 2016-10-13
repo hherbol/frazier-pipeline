@@ -52,54 +52,6 @@ def _get_solute_index(fpl_obj):
 
 	return index_of_solute
 
-#def _read_dump(fptr, ext=".dump", unwrapped=True):
-#	# Check if file exists. If not, try subfolder
-#	if not os.path.exists(fptr+ext):
-#		fptr = "lammps/%s/%s" % (fptr,fptr)
-#		if not os.path.exists(fptr+ext):
-#			raise Exception("File %s nor %s exists" % (fptr.split("/")[-1], fptr))
-#	# Read in the file
-#	raw_out = open(fptr+ext,"r").read()
-#	# Find "ITEM: ATOMS ", this is output
-#	s_find = "ITEM: ATOMS "
-#	n = len(s_find)
-#	# Determine what we have in this output
-#	headers = raw_out[raw_out.find(s_find):].split("\n")[0].split()[2:]
-#	column = {}
-#	for i,h in enumerate(headers):
-#		column[h] = i
-#
-#	# If we are getting unwrapped, specify
-#	if unwrapped:
-#		s_x, s_y, s_z = "xu", "yu", "zu"
-#	else:
-#		s_x, s_y, s_z = "x", "y", "z"
-#
-#	frames = []
-#	while s_find in raw_out:
-#		# Set pointer to start of an output line
-#		raw_out = raw_out[raw_out.find(s_find)+n:]
-#		# Make empty frame to store data
-#		frame = []
-#		# Get data set into a buffer
-#		buf = raw_out[:raw_out.find("ITEM:")].split("\n")[1:-1]
-#		# Store data
-#		for b in buf:
-#			b = b.split()
-#			elem = b[column["element"]]
-#			x = float(b[column[s_x]])
-#			y = float(b[column[s_y]])
-#			z = float(b[column[s_z]])
-#			if "id" in column: index = int(b[column["id"]])
-#			else: index = None
-#			if "type" in column: a_type = int(b[column["type"]])
-#			else: a_type = None
-#			a = structures.Atom(elem, x, y, z, index=index, type_index=a_type)
-#			frame = sorted(frame, key=lambda x: x.index)
-#			frame.append(a)
-#		frames.append(frame)
-#	return frames
-
 def _minimize_solvent(fpl_obj, run_name):
 
 	input_script = '''units real
@@ -135,12 +87,15 @@ write_restart $RUN_NAME$.restart'''
 	input_script = fpl_utils.input_variable("$SEED$", fpl_obj.seed, input_script)
 	input_script = fpl_utils.input_variable("$RUN_LEN$", fpl_obj.lmp_run_len, input_script)
 
-	## Generate empty system
-	system = structures.System(box_size=(25, 25, 25), name=fpl_obj.run_name)
 	## Get structures for solvent and solute
 	solvent = structures.Molecule(fpl_obj.cml_dir+fpl_obj.solvent_name, extra_parameters=fpl_obj.extra, allow_errors=True)
+	# Denisty in g/mL.  1 g/mL = 0.6022 amu/angstrom^3
+	rho = fpl_constants.solvent[fpl_obj.solvent_name]["density"] * 0.6022
+	weight_of_solvent = sum([units.elem_weight(a.element) for a in solvent.atoms]) # Weight in AMU/molecule
+	dim = np.ceil((weight_of_solvent / rho)**(1.0/3.0))
 
 	## Pack the system
+	system = structures.System(box_size=(dim, dim, dim), name=fpl_obj.run_name)
 	system.packmol((solvent,), (1,), fpl_constants.solvent[fpl_obj.solvent_name]["density"], fpl_obj.seed, number=fpl_obj.num_solvents)
 	system.name = run_name
 

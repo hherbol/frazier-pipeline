@@ -231,5 +231,6 @@ class Joust(object):
 				# Else, remove the finished simulation and continue
 				del self.task_order[0]
 
-			save_counter += 1
-			self.save_state("%s_%d" % (self.name, save_counter))
+			if save:
+				save_counter += 1
+				self.save_state("%s_%d" % (self.name, save_counter))

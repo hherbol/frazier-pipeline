@@ -124,7 +124,7 @@ write_restart $RUN_NAME$.restart'''
 
 	## Grab closest x solvent molecules.  In the case of solutes existing, we have x+1 in total
 	molecules_in_cluster.sort()
-	molecules_in_cluster = [m[1] for m in molecules_in_cluster[:3]] 
+	molecules_in_cluster = [m[1] for m in molecules_in_cluster[:fpl_obj.num_solvents]] 
 	for j,m in enumerate(molecules_in_cluster):
 		for i,a in enumerate(m.atoms):
 			a.index = i+1

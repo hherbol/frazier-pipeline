@@ -96,7 +96,7 @@ write_restart $RUN_NAME$.restart'''
 	input_script = fpl_utils.input_variable("$DUMP_MODIFY$", " ".join(elems), input_script)
 
 	## Pack the system
-	dim = 10
+	dim = 25
 	system = structures.System(box_size=(dim, dim, dim), name="debug")
 	system.packmol((solvent,), (1,), fpl_constants.solvent[fpl_obj.solvent_name]["density"], fpl_obj.seed)
 	system.name = run_name

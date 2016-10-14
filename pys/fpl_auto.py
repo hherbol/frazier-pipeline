@@ -112,6 +112,49 @@ print e_solv
 
 	########################################
 
+	# Generate a new system here
+	fpl_obj_solvent = fpl.fpl_job(run_name, solvent, None)
+	fpl_obj_solvent.cml_dir="/fs/home/hch54/frazier-pipeline/cml/"
+	# Set parameters
+	fpl_obj_solvent.num_solvents=num_solvents
+	# Generate system
+	fpl_obj_solvent.generate_system()
+
+	## Task 4 - Large Lammps Simulation of only solvent
+	### PARAMETERS
+	task1 = run_name + "_large_lammps_solv"
+	fpl_obj_solvent.queue=None
+	fpl_obj_solvent.procs=1
+	fpl_obj_solvent.lmp_run_len=10000
+	fpl_obj_solvent.trj_file=None
+	### ADD TASK
+	task = lmp_large_job(fpl_obj_solvent, task1)
+	fpl_obj_solvent.add_task(task)
+
+	## Task 5 - Small Lammps Simulation
+	### PARAMETERS
+	task2 = run_name + "_small_lammps_solv"
+	fpl_obj_solvent.queue=None
+	fpl_obj_solvent.procs=1
+	fpl_obj_solvent.lmp_run_len=10000
+	### ADD TASK
+		# Note, you can always overwrite the callback function
+		# tsk = lmp_small_job(fpl_obj_solvent, task2)
+		# tsk.callback = None
+		# fpl_obj_solvent.add_task( task2, tsk )
+	task = lmp_small_job(fpl_obj_solvent, task2)
+	fpl_obj_solvent.add_task(task)
+
+	# Store solvent system here
+	solvent_system = fpl_obj_solvent.system
+
+	########################################
+
+	# Run the simulation here
+	fpl_obj_solvent.start(save=False)
+
+	########################################
+
 	## Task 4 - Calculate Enthalpy of Solvation
 	### PARAMETERS
 	task4 = run_name + "_Hsolv"
@@ -131,7 +174,7 @@ print e_solv
 	fpl_obj.charge_and_multiplicity_solvent = charge_and_multiplicity_solvent
 
 	### ADD TASK
-	tasks = fpl_calc.enthalpy_solvation(fpl_obj, task4)
+	tasks = fpl_calc.enthalpy_solvation(fpl_obj, task4, solvent_system)
 	fpl_obj.add_task(tasks, parallel=True)
 
 	fpl_obj.start(save=False)

@@ -52,92 +52,7 @@ def _get_solute_index(fpl_obj):
 
 	return index_of_solute
 
-def _minimize_solvent(fpl_obj, run_name):
-
-	input_script = '''units real
-atom_style full
-pair_style lj/cut/coul/dsf 0.05 10.0 10.0
-bond_style harmonic
-angle_style harmonic
-dihedral_style opls
-
-boundary p p p
-read_data $RUN_NAME$.data
-
-dump 2 all custom 100 $RUN_NAME$.xyz id type element xu yu zu
-
-dump_modify 2 element $DUMP_MODIFY$
-
-fix av all ave/time 1 1000 1000 c_thermo_pe
-thermo_style custom step f_av pe temp press
-thermo 1000
-
-minimize 1.0e-4 1.0e-6 1000 10000
-
-velocity all create 300.0 $SEED$ rot yes dist gaussian
-
-fix motion all npt temp 300.0 300.0 10.0 aniso 1.0 1.0 100
-
-timestep 1.0
-run $RUN_LEN$
-
-write_restart $RUN_NAME$.restart'''
-	
-	# Setup input script
-	input_script = fpl_utils.input_variable("$RUN_NAME$", run_name, input_script)
-	input_script = fpl_utils.input_variable("$SEED$", fpl_obj.seed, input_script)
-	input_script = fpl_utils.input_variable("$RUN_LEN$", fpl_obj.lmp_run_len, input_script)
-
-	## Get structures for solvent and solute
-	solvent = structures.Molecule(fpl_obj.cml_dir+fpl_obj.solvent_name, extra_parameters=fpl_obj.extra, allow_errors=True)
-	atom_types = dict( [(t.type,True) for t in solvent.atoms] ).keys()
-	atom_types.sort(key=lambda t:-t.mass + (-1e6 if hasattr(t,'reax') else 0) )
-	elems = [units.elem_i2s(a.element) for a in atom_types]
-	input_script = fpl_utils.input_variable("$DUMP_MODIFY$", " ".join(elems), input_script)
-
-	## Pack the system
-	dim = 25
-	system = structures.System(box_size=(dim, dim, dim), name="debug")
-	system.packmol((solvent,), (1,), fpl_constants.solvent[fpl_obj.solvent_name]["density"], fpl_obj.seed)
-	system.name = run_name
-
-	# Run simulation
-	running_job = lammps_job.job(run_name, input_script, system, queue=None, procs=1, email=None, pair_coeffs_included=True, hybrid_pair=False, hybrid_angle=False, TIP4P=False)
-	running_job.wait()
-
-	# Read in results and set to system
-	xyz = lammps_job.read_dump(run_name,ext=".xyz",coordinates=["xu","yu","zu"])[-1]
-	xyz = sorted(xyz, key=lambda x: x.index)
-	## Store end of last LAMMPs simulation to system.atoms variable
-	for a,b in zip(system.atoms, xyz):
-		a.x, a.y, a.z = b.x, b.y, b.z
-		if any( [np.isnan(x) for x in (a.x,a.y,a.z)] ):
-			return None
-
-	# Grab N solvents from this
-	## Grab only molecules we're interested in.  Here we find relative distances to the solute in question
-	molecules_in_cluster = []
-	origin = structures.Atom('X',0.0,0.0,0.0)
-	for m in system.molecules:
-		R = geometry.dist(origin,m.atoms[0])
-		molecules_in_cluster.append( (R,m) )
-
-	## Grab closest x solvent molecules.  In the case of solutes existing, we have x+1 in total
-	molecules_in_cluster.sort()
-	molecules_in_cluster = [m[1] for m in molecules_in_cluster[:fpl_obj.num_solvents]] 
-	for j,m in enumerate(molecules_in_cluster):
-		for i,a in enumerate(m.atoms):
-			a.index = i+1
-	
-	## Generate the new system
-	system = None
-	system = structures.System(box_size=(100, 100, 100), name=fpl_obj.run_name)
-	for m in molecules_in_cluster:
-		system.add(m)
-
-	return system
-
-def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
+def enthalpy_solvation(fpl_obj, task_name, solvent_system, md_dft="dft"):
 	# Enthalpy of solvation involves running 3 simulations in parallel
 	#  1. Full System
 	#  2. System with only Solute
@@ -151,12 +66,10 @@ def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
 
 	full_system = copy.deepcopy(fpl_obj.system)
 	solute_system = copy.deepcopy(fpl_obj.system)
-	solvent_system = copy.deepcopy(fpl_obj.system)
 
 	# Generate solute only system and solvent only system
 	index_of_solute = _get_solute_index(fpl_obj)
 	solute_system = solute_system.molecules[index_of_solute]
-	solvent_system = _minimize_solvent(fpl_obj, task_name+"_pre_solv")
 
 	if md_dft == "md":
 		full_task = lmp_task(task_name+"_full", full_system, queue=fpl_obj.queue, procs=fpl_obj.procs,
@@ -185,10 +98,14 @@ def enthalpy_solvation(fpl_obj, task_name, md_dft="dft"):
 
 		# Set parameters
 		if fpl_obj.implicit_solvent:
-			fpl_obj.route += " COSMO"
-			fpl_obj.extra_section = "%cosmo SMD true epsilon " + str(fpl_constants.solvent[fpl_obj.solvent_name]["dielectric"]) + " end " + fpl_obj.extra_section
-			fpl_obj.route_solvent += " COSMO"
-			fpl_obj.extra_section_solvent = "%cosmo SMD true epsilon " + str(fpl_constants.solvent[fpl_obj.solvent_name]["dielectric"]) + " end " + fpl_obj.extra_section
+			if "COSMO" not in fpl_obj.route:
+				fpl_obj.route += " COSMO"
+			if "%cosmo" not in fpl_obj.extra_section:
+				fpl_obj.extra_section = "%cosmo SMD true epsilon " + str(fpl_constants.solvent[fpl_obj.solvent_name]["dielectric"]) + " end " + fpl_obj.extra_section
+			if "COSMO" not in fpl_obj.route_solvent:
+				fpl_obj.route_solvent += " COSMO"
+			if "%cosmo" not in fpl_obj.extra_section_solvent:
+				fpl_obj.extra_section_solvent = "%cosmo SMD true epsilon " + str(fpl_constants.solvent[fpl_obj.solvent_name]["dielectric"]) + " end " + fpl_obj.extra_section
 
 		full_task.set_parameters(
 			route = fpl_obj.route,

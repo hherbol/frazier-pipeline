@@ -33,6 +33,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">Frazier-PipeLine 0.0.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
       </ul>
@@ -68,6 +71,7 @@
 
 <span class="kn">import</span> <span class="nn">fpl</span>
 <span class="kn">import</span> <span class="nn">fpl_calc</span>
+<span class="kn">import</span> <span class="nn">fpl_constants</span>
 <span class="kn">from</span> <span class="nn">fpl_lmp_large</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_large_job</span>
 <span class="kn">from</span> <span class="nn">fpl_lmp_small</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_small_job</span>
 <span class="kn">from</span> <span class="nn">fpl_orca</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">orca_job</span>
@@ -300,18 +304,19 @@
 	<span class="k">return</span> <span class="n">H_solv</span>
 
 
-<div class="viewcode-block" id="get_MBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_MBO">[docs]</a><span class="k">def</span> <span class="nf">get_MBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">):</span>
+<div class="viewcode-block" id="get_MBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_MBO">[docs]</a><span class="k">def</span> <span class="nf">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span>
+			<span class="n">num_solvents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more</span>
 <span class="sd">	details.</span>
 
 <span class="sd">	**Parameters**</span>
 
-<span class="sd">		cation: *str*</span>
-<span class="sd">			The cation within the perovskite.</span>
-
 <span class="sd">		halide: *str*</span>
 <span class="sd">			The halide within the perovskite.</span>
+
+<span class="sd">		cation: *str*</span>
+<span class="sd">			The cation within the perovskite.</span>
 
 <span class="sd">		solvent: *str*</span>
 <span class="sd">			The solvent of the system.</span>
@@ -320,11 +325,68 @@
 
 <span class="sd">		MBO: *float*</span>
 <span class="sd">			The Mayer Bond Order</span>
-<span class="sd">	&quot;&quot;&quot;</span>
-	<span class="k">return</span> <span class="mi">2</span></div>
+<span class="sd">	&quot;&quot;&quot;</span>	
+	<span class="c1"># Get string for solute</span>
+	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">halide</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+		<span class="n">solute</span> <span class="o">=</span> <span class="s2">&quot;Pb&quot;</span><span class="o">+</span><span class="n">halide</span><span class="o">+</span><span class="s2">&quot;3&quot;</span><span class="o">+</span><span class="n">cation</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">solute</span> <span class="o">=</span> <span class="s2">&quot;Pb&quot;</span><span class="o">+</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">halide</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">if</span> <span class="n">halide</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">geometry</span><span class="o">.</span><span class="n">reduce_list</span><span class="p">(</span><span class="n">halide</span><span class="p">)])</span><span class="o">+</span><span class="n">cation</span>
 
+	<span class="c1"># Get molecules for solute and solvent</span>
+	<span class="n">M_solute</span> <span class="o">=</span> <span class="n">fpl_utils</span><span class="o">.</span><span class="n">generate_lead_halide_cation</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">)</span>
+	<span class="n">M_solvent</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">read_cml</span><span class="p">(</span><span class="n">fpl_constants</span><span class="o">.</span><span class="n">cml_dir</span><span class="o">+</span><span class="n">solvent</span><span class="o">+</span><span class="s2">&quot;.cml&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
+	<span class="c1"># Setup workflow manager</span>
+	<span class="c1">################################################################################</span>
+	<span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solute</span><span class="p">,</span> <span class="n">solvent</span><span class="p">)</span>
+	<span class="n">fpl_obj</span> <span class="o">=</span> <span class="n">fpl</span><span class="o">.</span><span class="n">fpl_job</span><span class="p">(</span><span class="n">run_name</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">solute</span><span class="p">)</span>
+	<span class="c1">## PARAMETERS SET HERE #########################################################</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">num_solvents</span> <span class="o">=</span> <span class="n">num_solvents</span>
+	<span class="c1">########################################</span>
+	<span class="c1">## Task 1 - Large Lammps Simulation for annealing solvents</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="kc">None</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">10000</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">trj_file</span><span class="o">=</span><span class="kc">None</span>
+	<span class="c1">### ADD TASK</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_large_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_large_lammps&quot;</span><span class="p">)</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+	<span class="c1">## Task 2 - Small Lammps Simulation</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="kc">None</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">10000</span>
+	<span class="c1">### ADD TASK</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_small_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_small_lammps&quot;</span><span class="p">)</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+	<span class="c1">## Task 3 - Orca Simulation</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">4</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route</span> <span class="o">=</span> <span class="n">route_lvls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity</span> <span class="o">=</span> <span class="n">charge_and_multiplicity</span>
+	<span class="c1">### ADD TASK</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">orca_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_orca&quot;</span><span class="p">)</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+	<span class="c1">################################################################################</span>
+
+	<span class="c1"># Run the simulation</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+	<span class="c1"># Read in the final results</span>
+	<span class="n">MBOs</span> <span class="o">=</span> <span class="n">fpl_obj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">MBO</span>
+	<span class="c1"># Find all MBOs for Oxygen and return them</span>
+	<span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">mbo</span> <span class="ow">in</span> <span class="n">MBOs</span><span class="p">:</span>
+		<span class="k">if</span> <span class="s2">&quot;O&quot;</span> <span class="ow">in</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">element</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mbo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
+			<span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mbo</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+	<span class="k">return</span> <span class="n">vals</span></div>
+
+<div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span> <span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order</span>
 <span class="sd">	(MBO) is well described `here &lt;http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract&gt;`_.  In short, it is a numerical representation</span>
@@ -338,11 +400,11 @@
 
 <span class="sd">	**Parameters**</span>
 
-<span class="sd">		cation: *str*</span>
-<span class="sd">			The cation within the perovskite.</span>
-
 <span class="sd">		halide: *str*</span>
 <span class="sd">			The halide within the perovskite.</span>
+
+<span class="sd">		cation: *str*</span>
+<span class="sd">			The cation within the perovskite.</span>
 
 <span class="sd">		solvent: *str*</span>
 <span class="sd">			The solvent of the system.</span>
@@ -358,7 +420,11 @@
 <span class="sd">			The Unsaturation Mayer Bond Order</span>
 
 <span class="sd">	&quot;&quot;&quot;</span>
-	<span class="k">return</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">)</span></div>
+	<span class="n">vals</span> <span class="o">=</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+		<span class="k">return</span> <span class="p">[</span><span class="n">offset</span> <span class="o">-</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">vals</span></div>
 </pre></div>
 
           </div>
@@ -391,6 +457,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">Frazier-PipeLine 0.0.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
       </ul>

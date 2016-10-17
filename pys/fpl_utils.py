@@ -102,6 +102,6 @@ def generate_lead_halide_cation(halide, cation, run_opt=True):
 		PbXY.wait()
 		system.atoms = orca.read(fname).atoms
 
-	files.write_cml(system, cml_path+fname+".cml")
+	files.write_cml(system, name=cml_path+fname+".cml")
 
 	return system

@@ -48,7 +48,7 @@ For anymore information on documentation, the tutorial follwed can be found here
 Using FPL
 ------------------------------
 
-:func:`fpl.get_UMBO`
+:func:`fpl_auto.get_UMBO`
 
 Once installed, FPL can be used to automate some work.  The following is an example use of how to (1) generate a system of a solute with solvent, (2) equilibrate in lammps, (3) equilibrate with less solvents in lammps, (4) equilibrate in DFT using Orca, and (5) calculate the enthalpy of solvation.
 

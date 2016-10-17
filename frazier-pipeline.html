@@ -102,12 +102,12 @@ details.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><dl class="docutils">
-<dt>cation</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><em>str</em></span><dd>The cation within the perovskite.</dd>
-<dt>halide</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><em>str</em></span><dd>The halide within the perovskite.</dd>
-<dt>solvent</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><em>str</em></span><dd>The solvent of the system.</dd>
+<dt>cation: <em>str</em></dt>
+<dd>The cation within the perovskite.</dd>
+<dt>halide: <em>str</em></dt>
+<dd>The halide within the perovskite.</dd>
+<dt>solvent: <em>str</em></dt>
+<dd>The solvent of the system.</dd>
 </dl>
 </div></blockquote>
 </dd></dl>
@@ -116,7 +116,7 @@ details.</p>
 <dt id="fpl_auto.get_UMBO">
 <code class="descclassname">fpl_auto.</code><code class="descname">get_UMBO</code><span class="sig-paren">(</span><em>cation</em>, <em>halide</em>, <em>solvent</em>, <em>offset=2.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_UMBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_UMBO" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
-(MBO) is well described [here](<a class="reference external" href="http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract">http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract</a>).  In short, it is a numerical representation
+(MBO) is well described <cite>here &lt;http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract&gt;</cite>.  In short, it is a numerical representation
 of the probability of how many electrons partake in a bond.  For instance,
 a single bond would have a theoretical bond order of 1.0; however, in
 practice it may have more or less depending on how electrons distribute

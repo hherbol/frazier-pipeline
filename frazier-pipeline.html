@@ -80,7 +80,7 @@
 </ol>
 <p><strong>Adding Documentation</strong></p>
 <p>Documentation is done using <a class="reference external" href="http://docutils.sourceforge.net/docs/user/rst/quickref.html">ReStructuredText</a> format docstrings, the <a class="reference external" href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> python package, and indices with autodoc extensions.  To add more documentation, first add the file to be included in <cite>docs/source/conf.py</cite> under <cite>os.path.abspath(&#8216;example/dir/to/script.py&#8217;)</cite>.  Secondly, ensure that you have proper docstrings in the python file, and finally run <cite>make full</cite> to re-generate the documentation and commit it to your local branch, as well as the git <em>gh-pages</em> branch.</p>
-<p>For anymore information on documentation, the tutorial follwed can be found <a class="reference external" href="https://daler.github.io/sphinxdoc-test/includeme.html">here</a>.</p>
+<p>For anymore information on documentation, the tutorial follwed can be found <a href="#id2"><span class="problematic" id="id3">here_</span></a>.</p>
 </div>
 <div class="section" id="module-fpl_auto">
 <span id="using-fpl"></span><h2>Using FPL<a class="headerlink" href="#module-fpl_auto" title="Permalink to this headline">¶</a></h2>
@@ -116,7 +116,7 @@ details.</p>
 <dt id="fpl_auto.get_UMBO">
 <code class="descclassname">fpl_auto.</code><code class="descname">get_UMBO</code><span class="sig-paren">(</span><em>cation</em>, <em>halide</em>, <em>solvent</em>, <em>offset=2.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_UMBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_UMBO" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
-(MBO) is well described <cite>here &lt;http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract&gt;</cite>.  In short, it is a numerical representation
+(MBO) is well described <a class="reference external" href="http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract">here</a>.  In short, it is a numerical representation
 of the probability of how many electrons partake in a bond.  For instance,
 a single bond would have a theoretical bond order of 1.0; however, in
 practice it may have more or less depending on how electrons distribute
@@ -127,14 +127,14 @@ UMBO is less than zero, then the bond is stronger than theory.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><dl class="docutils">
-<dt>cation</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><em>str</em></span><dd>The cation within the perovskite.</dd>
-<dt>halide</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><em>str</em></span><dd>The halide within the perovskite.</dd>
-<dt>solvent</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><em>str</em></span><dd>The solvent of the system.</dd>
-<dt>offset</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier"><em>float, optional</em></span><dd>The offset supplied to get the UMBO.  In most cases we consider,
+<dt>cation: <em>str</em></dt>
+<dd>The cation within the perovskite.</dd>
+<dt>halide: <em>str</em></dt>
+<dd>The halide within the perovskite.</dd>
+<dt>solvent: <em>str</em></dt>
+<dd>The solvent of the system.</dd>
+<dt>offset: <em>float, optional</em></dt>
+<dd>The offset supplied to get the UMBO.  In most cases we consider,
 this is 2.0 as that is the theoretical bond order of a double
 bonded oxygen to sulfur.</dd>
 </dl>

@@ -19,10 +19,12 @@ import os
 import types
 
 import jobs
+import files
 
 import fpl
 import fpl_calc
 import fpl_constants
+import fpl_utils
 from fpl_lmp_large import job as lmp_large_job
 from fpl_lmp_small import job as lmp_small_job
 from fpl_orca import job as orca_job
@@ -256,7 +258,8 @@ print e_solv
 
 
 def get_MBO(halide, cation, solvent,
-			num_solvents = 1):
+			num_solvents = 1,
+			route_lvls = [1,1,1,1]):
 	"""
 	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more
 	details.
@@ -293,6 +296,12 @@ def get_MBO(halide, cation, solvent,
 	fpl_obj = fpl.fpl_job(run_name, solvent, solute)
 	## PARAMETERS SET HERE #########################################################
 	fpl_obj.num_solvents = num_solvents
+	fpl_obj.route_lvls = route_lvls
+	fpl_obj.charge_and_multiplicity = "0 1"
+	fpl_obj.charge_and_multiplicity_solute = "0 1"
+	fpl_obj.charge_and_multiplicity_solvent = "0 1"
+	## Generate the system
+	fpl_obj.generate_system()
 	########################################
 	## Task 1 - Large Lammps Simulation for annealing solvents
 	### PARAMETERS
@@ -306,7 +315,6 @@ def get_MBO(halide, cation, solvent,
 
 	## Task 2 - Small Lammps Simulation
 	### PARAMETERS
-	task2 = 
 	fpl_obj.queue=None
 	fpl_obj.procs=1
 	fpl_obj.lmp_run_len=10000
@@ -319,7 +327,6 @@ def get_MBO(halide, cation, solvent,
 	fpl_obj.queue="batch"
 	fpl_obj.procs=4
 	fpl_obj.route = route_lvls[0]
-	fpl_obj.charge_and_multiplicity = charge_and_multiplicity
 	### ADD TASK
 	task = orca_job(fpl_obj, run_name + "_orca")
 	fpl_obj.add_task(task)

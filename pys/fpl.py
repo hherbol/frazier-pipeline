@@ -91,9 +91,9 @@ fpl_job.start(on_queue=None)
 		## Generate empty system
 		system = structures.System(box_size=(25, 25, 25), name=self.run_name)
 		## Get structures for solvent and solute
-		solvent = structures.Molecule(self.cml_dir+self.solvent_name, extra_parameters=self.extra, allow_errors=True)
+		solvent = structures.Molecule(fpl_constants.cml_dir+self.solvent_name, extra_parameters=self.extra, allow_errors=True)
 		if self.solute is not None:
-			solute = structures.Molecule(self.cml_dir+self.solute, test_charges=False, allow_errors=True)
+			solute = structures.Molecule(fpl_constants.cml_dir+self.solute, test_charges=False, allow_errors=True)
 			system.add(solute)
 		## Pack the system
 		system.packmol((solvent,), (1,), fpl_constants.solvent[self.solvent_name]["density"], self.seed)

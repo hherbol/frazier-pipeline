@@ -20,6 +20,7 @@ import types
 
 import jobs
 import files
+import geometry
 
 import fpl
 import fpl_calc

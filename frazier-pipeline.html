@@ -34,9 +34,6 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="index.html" title="Frazier PipeLine - Table of Contents"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">Frazier-PipeLine 0.0.1 documentation</a> &#187;</li> 
@@ -80,84 +77,10 @@
 </ol>
 <p><strong>Adding Documentation</strong></p>
 <p>Documentation is done using <a class="reference external" href="http://docutils.sourceforge.net/docs/user/rst/quickref.html">ReStructuredText</a> format docstrings, the <a class="reference external" href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> python package, and indices with autodoc extensions.  To add more documentation, first add the file to be included in <cite>docs/source/conf.py</cite> under <cite>os.path.abspath(&#8216;example/dir/to/script.py&#8217;)</cite>.  Secondly, ensure that you have proper docstrings in the python file, and finally run <cite>make full</cite> to re-generate the documentation and commit it to your local branch, as well as the git <em>gh-pages</em> branch.</p>
-<p>For anymore information on documentation, the tutorial follwed can be found <a href="#id2"><span class="problematic" id="id3">here_</span></a>.</p>
+<p>For anymore information on documentation, the tutorial follwed can be found <a class="reference external" href="https://daler.github.io/sphinxdoc-test/includeme.html">here</a>.</p>
 </div>
-<div class="section" id="module-fpl_auto">
-<span id="using-fpl"></span><h2>Using FPL<a class="headerlink" href="#module-fpl_auto" title="Permalink to this headline">¶</a></h2>
-<p>Automated calculations for the Frazier Pipeline are as follows:</p>
-<ul class="simple">
-<li><a class="reference internal" href="#fpl_auto.get_MBO" title="fpl_auto.get_MBO"><code class="xref py py-func docutils literal"><span class="pre">get_MBO()</span></code></a></li>
-<li><a class="reference internal" href="#fpl_auto.get_UMBO" title="fpl_auto.get_UMBO"><code class="xref py py-func docutils literal"><span class="pre">get_UMBO()</span></code></a></li>
-</ul>
-<p>The following is still prone to bugs.  It should work for num_solvents=1;
-however, any more and it is prone to blowing up (ie, irrationally large
-enthalpy of solvations).  For now, it has been hidden to avoid incorrect
-calculations.</p>
-<ul class="simple">
-<li><code class="xref py py-func docutils literal"><span class="pre">get_enthalpy_solvation()</span></code></li>
-</ul>
-<hr class="docutils" />
-<dl class="function">
-<dt id="fpl_auto.get_MBO">
-<code class="descclassname">fpl_auto.</code><code class="descname">get_MBO</code><span class="sig-paren">(</span><em>cation</em>, <em>halide</em>, <em>solvent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_MBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_MBO" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the mayer bond order.  The Mayer Bond Order (see <a class="reference internal" href="#fpl_auto.get_UMBO" title="fpl_auto.get_UMBO"><code class="xref py py-func docutils literal"><span class="pre">get_UMBO()</span></code></a>) for more
-details.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><dl class="docutils">
-<dt>cation: <em>str</em></dt>
-<dd>The cation within the perovskite.</dd>
-<dt>halide: <em>str</em></dt>
-<dd>The halide within the perovskite.</dd>
-<dt>solvent: <em>str</em></dt>
-<dd>The solvent of the system.</dd>
-</dl>
-</div></blockquote>
-<p><strong>Return</strong></p>
-<blockquote>
-<div><dl class="docutils">
-<dt>MBO: <em>float</em></dt>
-<dd>The Mayer Bond Order</dd>
-</dl>
-</div></blockquote>
-</dd></dl>
-
-<dl class="function">
-<dt id="fpl_auto.get_UMBO">
-<code class="descclassname">fpl_auto.</code><code class="descname">get_UMBO</code><span class="sig-paren">(</span><em>cation</em>, <em>halide</em>, <em>solvent</em>, <em>offset=2.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_UMBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_UMBO" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
-(MBO) is well described <a class="reference external" href="http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract">here</a>.  In short, it is a numerical representation
-of the probability of how many electrons partake in a bond.  For instance,
-a single bond would have a theoretical bond order of 1.0; however, in
-practice it may have more or less depending on how electrons distribute
-across the molecule.  The MBO helps describe this, and the Unsaturated MBO
-(UMBO) helps represent this in a more understandable fashion.  That is, 
-if the UMBO is larger than zero, the bond is weaker than theory.  If the
-UMBO is less than zero, then the bond is stronger than theory.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><dl class="docutils">
-<dt>cation: <em>str</em></dt>
-<dd>The cation within the perovskite.</dd>
-<dt>halide: <em>str</em></dt>
-<dd>The halide within the perovskite.</dd>
-<dt>solvent: <em>str</em></dt>
-<dd>The solvent of the system.</dd>
-<dt>offset: <em>float, optional</em></dt>
-<dd>The offset supplied to get the UMBO.  In most cases we consider,
-this is 2.0 as that is the theoretical bond order of a double
-bonded oxygen to sulfur.</dd>
-</dl>
-</div></blockquote>
-<p><strong>Return</strong></p>
-<blockquote>
-<div><dl class="docutils">
-<dt>UMBO: <em>float</em></dt>
-<dd>The Unsaturation Mayer Bond Order</dd>
-</dl>
-</div></blockquote>
-</dd></dl>
-
+<div class="section" id="using-fpl">
+<h2>Using FPL<a class="headerlink" href="#using-fpl" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -172,7 +95,7 @@ bonded oxygen to sulfur.</dd>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Frazier PipeLine</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installing">Installing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-fpl_auto">Using FPL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-fpl">Using FPL</a></li>
 </ul>
 </li>
 </ul>
@@ -207,9 +130,6 @@ bonded oxygen to sulfur.</dd>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
         <li class="right" >
           <a href="index.html" title="Frazier PipeLine - Table of Contents"
              >previous</a> |</li>

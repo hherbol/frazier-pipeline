@@ -43,8 +43,7 @@ fpl_job.start(on_queue=None)
 		self.num_solvents = 10
 
 		# Paths are here
-		self.HOME_DIR = os.getcwd()+"/"		
-		self.cml_dir = os.getcwd()+"/cml/"
+		self.HOME_DIR = os.getcwd()+"/"
 
 		# Simulation parameters are here
 		self.queue = None

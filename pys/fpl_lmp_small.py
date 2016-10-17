@@ -5,6 +5,7 @@ import numpy as np
 
 # fpl Imports
 import fpl_utils
+import fpl_constants
 
 # Clancelot Imports
 import structures
@@ -71,7 +72,7 @@ write_restart $RUN_NAME$.restart'''
 	# Setup input script
 	solute = None
 	if fpl_obj.solute is not None:
-		solute = structures.Molecule(fpl_obj.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
+		solute = structures.Molecule(fpl_constants.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
 	mobile = str(len(solute.atoms) if solute else 0)
 	input_script = fpl_utils.input_variable("$MOBILE$", mobile, input_script)
 

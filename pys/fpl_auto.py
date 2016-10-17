@@ -1,3 +1,20 @@
+"""
+Automated calculations for the Frazier Pipeline are as follows:
+
+- :func:`get_MBO`
+- :func:`get_UMBO`
+
+The following is still prone to bugs.  It should work for num_solvents=1;
+however, any more and it is prone to blowing up (ie, irrationally large
+enthalpy of solvations).  For now, it has been hidden to avoid incorrect
+calculations.
+
+- :func:`get_enthalpy_solvation`
+
+------------
+
+"""
+
 import os
 import types
 
@@ -5,15 +22,69 @@ import jobs
 
 import fpl
 import fpl_calc
+import fpl_constants
 from fpl_lmp_large import job as lmp_large_job
 from fpl_lmp_small import job as lmp_small_job
 from fpl_orca import job as orca_job
 
-def get_enthalpy_solvation(solute, solvent, num_solvents=1, on_queue=False,
-	queue="batch", nprocs="1", xhost=None, unit="kT_300",
+def _get_enthalpy_solvation(solute, solvent, num_solvents=1, on_queue=False,
+	queue="batch", nprocs=1, xhost=None, unit="kT_300",
 	charge_and_multiplicity="0 1", charge_and_multiplicity_solute="0 1",
 	charge_and_multiplicity_solvent="0 1", name_append="",
 	route_lvls=[1,1,1,1]):
+	"""
+	This automates the process of calculating the enthalpy of solvation for
+	a solvent bonded to a given solute.
+
+	NOTE - DO NOT USE THIS METHOD FOR NOW!
+
+	**Parameters**
+
+		solute : *str*
+			A solute for which to be solvated.
+
+		solvent : *str*
+			The solvent of the system.
+
+		num_solvents : *int, optional*
+			The number of solvents to explicitly simulate.
+
+		on_queue : *bool, optional*
+			Whether to run this simulation on the queue.
+
+		queue : *str, optional*
+			Which queue to run the simulation on.
+
+		nprocs : *int, optional*
+			How many processors to use.
+
+		xhost : *list, str or str, optional*
+			A list of processors, or a single processor for which to submit
+			the simulations (on the queue).
+
+		unit : *str, optional*
+			What units the energy should be returned in.
+
+		charge_and_multiplicity : *str, optional*
+			The charge and multiplicity of the full system.
+
+		charge_and_multiplicity_solute : *str, optional*
+			The charge and multiplicity of the solute.
+
+		charge_and_multiplicity_solvent : *str, optional*
+			The charge and multiplicity of the solvent.
+
+		name_append : *str, optional*
+			What to append to the name for these simulations.
+
+		route_lvls : *list, int, optional*
+			What level of theory (DFT) to run these calculations at.
+
+	**Return**
+
+		H_solv : *float*
+			The enthalpy of solvation.
+	"""
 	if num_solvents < 1:
 		raise Exception("You must have a number of solvents greater than or\
 		equal to 1")
@@ -182,3 +253,127 @@ print e_solv
 	H_solv = fpl_calc.post_enthalpy_solvation(fpl_obj, unit=unit)
 
 	return H_solv
+
+
+def get_MBO(halide, cation, solvent,
+			num_solvents = 1):
+	"""
+	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more
+	details.
+
+	**Parameters**
+
+		halide: *str*
+			The halide within the perovskite.
+
+		cation: *str*
+			The cation within the perovskite.
+
+		solvent: *str*
+			The solvent of the system.
+
+	**Return**
+
+		MBO: *float*
+			The Mayer Bond Order
+	"""	
+	# Get string for solute
+	if type(halide) is str:
+		solute = "Pb"+halide+"3"+cation
+	else:
+		solute = "Pb"+"".join([x + str(halide.count(x)) if halide.count(x) > 1 else x for x in geometry.reduce_list(halide)])+cation
+
+	# Get molecules for solute and solvent
+	M_solute = fpl_utils.generate_lead_halide_cation(halide, cation)
+	M_solvent = files.read_cml(fpl_constants.cml_dir+solvent+".cml")
+
+	# Setup workflow manager
+	################################################################################
+	run_name = "%s_%s" % (solute, solvent)
+	fpl_obj = fpl.fpl_job(run_name, solvent, solute)
+	## PARAMETERS SET HERE #########################################################
+	fpl_obj.num_solvents = num_solvents
+	########################################
+	## Task 1 - Large Lammps Simulation for annealing solvents
+	### PARAMETERS
+	fpl_obj.queue=None
+	fpl_obj.procs=1
+	fpl_obj.lmp_run_len=10000
+	fpl_obj.trj_file=None
+	### ADD TASK
+	task = lmp_large_job(fpl_obj, run_name + "_large_lammps")
+	fpl_obj.add_task(task)
+
+	## Task 2 - Small Lammps Simulation
+	### PARAMETERS
+	task2 = 
+	fpl_obj.queue=None
+	fpl_obj.procs=1
+	fpl_obj.lmp_run_len=10000
+	### ADD TASK
+	task = lmp_small_job(fpl_obj, run_name + "_small_lammps")
+	fpl_obj.add_task(task)
+
+	## Task 3 - Orca Simulation
+	### PARAMETERS
+	fpl_obj.queue="batch"
+	fpl_obj.procs=4
+	fpl_obj.route = route_lvls[0]
+	fpl_obj.charge_and_multiplicity = charge_and_multiplicity
+	### ADD TASK
+	task = orca_job(fpl_obj, run_name + "_orca")
+	fpl_obj.add_task(task)
+	################################################################################
+
+	# Run the simulation
+	fpl_obj.start(save=False)
+
+	# Read in the final results
+	MBOs = fpl_obj.data.MBO
+	# Find all MBOs for Oxygen and return them
+	vals = []
+	for mbo in MBOs:
+		if "O" in [a.element for a in mbo[0]]:
+			vals.append(mbo[1])
+
+	return vals
+
+def get_UMBO(halide, cation , solvent, offset=2.0):
+	"""
+	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
+	(MBO) is well described `here <http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract>`_.  In short, it is a numerical representation
+	of the probability of how many electrons partake in a bond.  For instance,
+	a single bond would have a theoretical bond order of 1.0; however, in
+	practice it may have more or less depending on how electrons distribute
+	across the molecule.  The MBO helps describe this, and the Unsaturated MBO
+	(UMBO) helps represent this in a more understandable fashion.  That is, 
+	if the UMBO is larger than zero, the bond is weaker than theory.  If the
+	UMBO is less than zero, then the bond is stronger than theory.
+
+	**Parameters**
+
+		halide: *str*
+			The halide within the perovskite.
+
+		cation: *str*
+			The cation within the perovskite.
+
+		solvent: *str*
+			The solvent of the system.
+
+		offset: *float, optional*
+			The offset supplied to get the UMBO.  In most cases we consider,
+			this is 2.0 as that is the theoretical bond order of a double
+			bonded oxygen to sulfur.
+
+	**Return**
+
+		UMBO: *float*
+			The Unsaturation Mayer Bond Order
+
+	"""
+	vals = get_MBO(halide, cation, solvent)
+	if type(vals) is list:
+		return [offset - v for v in vals]
+	else:
+		return offset - vals

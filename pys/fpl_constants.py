@@ -28,3 +28,5 @@ default_routes = ["! HF SV ECP{def2-TZVP}",
          "! OPT HF SV ECP{def2-TZVP} LooseOpt",
          "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
          "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"]
+
+cml_dir="/fs/home/hch54/frazier-pipeline/cml/"

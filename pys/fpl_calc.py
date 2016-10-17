@@ -35,7 +35,7 @@ def _get_solute_index(fpl_obj):
 	molecules_in_cluster = []
 	m_solute = None
 	if fpl_obj.solute:
-		m_solute = structures.Molecule(fpl_obj.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
+		m_solute = structures.Molecule(fpl_constants.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
 		diffs = []
 		for molec in system.molecules:
 			# NOTE, ORDER MATTERS! As procrustes WILL change the atomic positions of the

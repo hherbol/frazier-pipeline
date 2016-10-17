@@ -38,7 +38,7 @@ def callback_strip_solvents(fpl_obj):
 	molecules_in_cluster = []
 	m_solute = None
 	if fpl_obj.solute:
-		m_solute = structures.Molecule(fpl_obj.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
+		m_solute = structures.Molecule(fpl_constants.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
 		diffs = []
 		for molec in system.molecules:
 			# NOTE, ORDER MATTERS! As procrustes WILL change the atomic positions of the
@@ -115,7 +115,7 @@ write_restart $RUN_NAME$.restart'''
 	# Setup input script
 	solute = None
 	if fpl_obj.solute is not None:
-		solute = structures.Molecule(fpl_obj.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
+		solute = structures.Molecule(fpl_constants.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
 	mobile = str(len(solute.atoms) if solute else 0)
 	input_script = fpl_utils.input_variable("$MOBILE$", mobile, input_script)
 

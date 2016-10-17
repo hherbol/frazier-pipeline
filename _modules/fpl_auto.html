@@ -1,0 +1,401 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fpl_auto &#8212; Frazier-PipeLine 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Frazier-PipeLine 0.0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Frazier-PipeLine 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for fpl_auto</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Automated calculations for the Frazier Pipeline are as follows:</span>
+
+<span class="sd">- :func:`get_UMBO`</span>
+<span class="sd">- :func:`get_MBO`</span>
+
+<span class="sd">The following is still prone to bugs.  It should work for num_solvents=1;</span>
+<span class="sd">however, any more and it is prone to blowing up (ie, irrationally large</span>
+<span class="sd">enthalpy of solvations)</span>
+<span class="sd">- :func:`get_enthalpy_solvation`</span>
+
+<span class="sd">------------</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="kn">import</span> <span class="nn">jobs</span>
+
+<span class="kn">import</span> <span class="nn">fpl</span>
+<span class="kn">import</span> <span class="nn">fpl_calc</span>
+<span class="kn">from</span> <span class="nn">fpl_lmp_large</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_large_job</span>
+<span class="kn">from</span> <span class="nn">fpl_lmp_small</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_small_job</span>
+<span class="kn">from</span> <span class="nn">fpl_orca</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">orca_job</span>
+
+<span class="k">def</span> <span class="nf">_get_enthalpy_solvation</span><span class="p">(</span><span class="n">solute</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">num_solvents</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">on_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+	<span class="n">queue</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xhost</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;kT_300&quot;</span><span class="p">,</span>
+	<span class="n">charge_and_multiplicity</span><span class="o">=</span><span class="s2">&quot;0 1&quot;</span><span class="p">,</span> <span class="n">charge_and_multiplicity_solute</span><span class="o">=</span><span class="s2">&quot;0 1&quot;</span><span class="p">,</span>
+	<span class="n">charge_and_multiplicity_solvent</span><span class="o">=</span><span class="s2">&quot;0 1&quot;</span><span class="p">,</span> <span class="n">name_append</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+	<span class="n">route_lvls</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This automates the process of calculating the enthalpy of solvation for</span>
+<span class="sd">	a solvent bonded to a given solute.</span>
+
+<span class="sd">	NOTE - DO NOT USE THIS METHOD FOR NOW!</span>
+
+<span class="sd">	**Parameters**</span>
+
+<span class="sd">		solute : *str*</span>
+<span class="sd">			A solute for which to be solvated.</span>
+
+<span class="sd">		solvent : *str*</span>
+<span class="sd">			The solvent of the system.</span>
+
+<span class="sd">		num_solvents : *int, optional*</span>
+<span class="sd">			The number of solvents to explicitly simulate.</span>
+
+<span class="sd">		on_queue : *bool, optional*</span>
+<span class="sd">			Whether to run this simulation on the queue.</span>
+
+<span class="sd">		queue : *str, optional*</span>
+<span class="sd">			Which queue to run the simulation on.</span>
+
+<span class="sd">		nprocs : *int, optional*</span>
+<span class="sd">			How many processors to use.</span>
+
+<span class="sd">		xhost : *list, str or str, optional*</span>
+<span class="sd">			A list of processors, or a single processor for which to submit</span>
+<span class="sd">			the simulations (on the queue).</span>
+
+<span class="sd">		unit : *str, optional*</span>
+<span class="sd">			What units the energy should be returned in.</span>
+
+<span class="sd">		charge_and_multiplicity : *str, optional*</span>
+<span class="sd">			The charge and multiplicity of the full system.</span>
+
+<span class="sd">		charge_and_multiplicity_solute : *str, optional*</span>
+<span class="sd">			The charge and multiplicity of the solute.</span>
+
+<span class="sd">		charge_and_multiplicity_solvent : *str, optional*</span>
+<span class="sd">			The charge and multiplicity of the solvent.</span>
+
+<span class="sd">		name_append : *str, optional*</span>
+<span class="sd">			What to append to the name for these simulations.</span>
+
+<span class="sd">		route_lvls : *list, int, optional*</span>
+<span class="sd">			What level of theory (DFT) to run these calculations at.</span>
+
+<span class="sd">	**Return**</span>
+
+<span class="sd">		H_solv : *float*</span>
+<span class="sd">			The enthalpy of solvation.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">num_solvents</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;You must have a number of solvents greater than or</span><span class="se">\</span>
+<span class="s2">		equal to 1&quot;</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">on_queue</span><span class="p">:</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;import fpl_auto</span>
+<span class="s2">e_solv = fpl_auto.get_enthalpy_solvation(&quot;$SOLUTE&quot;,&quot;$SOLVENT&quot;, num_solvents=$NUM_SOLVENTS, </span>
+<span class="s2">	unit=&quot;$UNIT&quot;, charge_and_multiplicity=&quot;$CHARGE_AND_MULTIPLICITY&quot;,</span>
+<span class="s2">	charge_and_multiplicity_solute=&quot;$CHARGE_AND_MULTIPLICITY_SOLUTE&quot;,</span>
+<span class="s2">	charge_and_multiplicity_solvent=&quot;$CHARGE_AND_MULTIPLICITY_SOLVENT&quot;,</span>
+<span class="s2">	name_append=&quot;$NAME_APPEND&quot;, route_lvls=$ROUTE_LVLS)</span>
+<span class="s2">print e_solv</span>
+<span class="s2">&quot;&quot;&quot;</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$SOLUTE&quot;</span><span class="p">,</span><span class="n">solute</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$SOLVENT&quot;</span><span class="p">,</span><span class="n">solvent</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$NUM_SOLVENTS&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">num_solvents</span><span class="p">))</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$UNIT&quot;</span><span class="p">,</span><span class="n">unit</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$CHARGE_AND_MULTIPLICITY&quot;</span><span class="p">,</span><span class="n">charge_and_multiplicity</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$CHARGE_AND_MULTIPLICITY_SOLUTE&quot;</span><span class="p">,</span><span class="n">charge_and_multiplicity_solute</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$CHARGE_AND_MULTIPLICITY_SOLVENT&quot;</span><span class="p">,</span><span class="n">charge_and_multiplicity_solvent</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$NAME_APPEND&quot;</span><span class="p">,</span><span class="n">name_append</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$ROUTE_LVLS&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">route_lvls</span><span class="p">))</span>
+
+		<span class="n">job_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s%s</span><span class="s2">.py&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solute</span><span class="p">,</span><span class="n">solvent</span><span class="p">,</span><span class="n">name_append</span><span class="p">)</span>
+		<span class="n">fptr</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">job_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+		<span class="n">fptr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pysub_str</span><span class="p">)</span>
+		<span class="n">fptr</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+		<span class="n">running_job</span> <span class="o">=</span> <span class="n">jobs</span><span class="o">.</span><span class="n">pysub</span><span class="p">(</span><span class="n">job_name</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="n">nprocs</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">,</span> <span class="n">xhost</span><span class="o">=</span><span class="n">xhost</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">remove_sub_script</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">def</span> <span class="nf">enthalpy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_finished</span><span class="p">():</span>
+				<span class="k">return</span> <span class="kc">None</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">H</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.log&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+				<span class="k">return</span> <span class="n">H</span>
+		<span class="n">running_job</span><span class="o">.</span><span class="n">enthalpy</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">(</span> <span class="n">enthalpy</span><span class="p">,</span> <span class="n">running_job</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">running_job</span>
+
+	<span class="c1">########################################</span>
+	<span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solvent</span><span class="p">,</span> <span class="n">solute</span><span class="p">)</span>
+	<span class="n">run_name</span> <span class="o">+=</span> <span class="n">name_append</span>
+
+	<span class="c1"># Generate initial object</span>
+	<span class="n">fpl_obj</span> <span class="o">=</span> <span class="n">fpl</span><span class="o">.</span><span class="n">fpl_job</span><span class="p">(</span><span class="n">run_name</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">solute</span><span class="p">)</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">cml_dir</span><span class="o">=</span><span class="s2">&quot;/fs/home/hch54/frazier-pipeline/cml/&quot;</span>
+
+	<span class="c1"># Set parameters</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">num_solvents</span><span class="o">=</span><span class="n">num_solvents</span>
+
+	<span class="c1"># Generate system</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">generate_system</span><span class="p">()</span>
+
+	<span class="c1">########################################</span>
+	<span class="c1"># Add the tasks here</span>
+
+	<span class="c1">## Task 1 - Large Lammps Simulation</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">task1</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_large_lammps&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="kc">None</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">10000</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">trj_file</span><span class="o">=</span><span class="kc">None</span>
+	<span class="c1">### ADD TASK</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_large_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task1</span><span class="p">)</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+	<span class="c1">## Task 2 - Small Lammps Simulation</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">task2</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_small_lammps&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="kc">None</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">10000</span>
+	<span class="c1">### ADD TASK</span>
+		<span class="c1"># Note, you can always overwrite the callback function</span>
+		<span class="c1"># tsk = lmp_small_job(fpl_obj, task2)</span>
+		<span class="c1"># tsk.callback = None</span>
+		<span class="c1"># fpl_obj.add_task( task2, tsk )</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_small_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task2</span><span class="p">)</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+	<span class="c1">## Task 3 - Orca Simulation</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">task3</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_orca&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">4</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route</span> <span class="o">=</span> <span class="n">route_lvls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity</span> <span class="o">=</span> <span class="n">charge_and_multiplicity</span>
+	<span class="c1">### ADD TASK</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">orca_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task3</span><span class="p">)</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+	<span class="c1">########################################</span>
+
+	<span class="c1"># Run the simulation here</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+	<span class="c1">########################################</span>
+
+	<span class="c1"># Generate a new system here</span>
+	<span class="n">fpl_obj_solvent</span> <span class="o">=</span> <span class="n">fpl</span><span class="o">.</span><span class="n">fpl_job</span><span class="p">(</span><span class="n">run_name</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">cml_dir</span><span class="o">=</span><span class="s2">&quot;/fs/home/hch54/frazier-pipeline/cml/&quot;</span>
+	<span class="c1"># Set parameters</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">num_solvents</span><span class="o">=</span><span class="n">num_solvents</span>
+	<span class="c1"># Generate system</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">generate_system</span><span class="p">()</span>
+
+	<span class="c1">## Task 4 - Large Lammps Simulation of only solvent</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">task1</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_large_lammps_solv&quot;</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="kc">None</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">10000</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">trj_file</span><span class="o">=</span><span class="kc">None</span>
+	<span class="c1">### ADD TASK</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_large_job</span><span class="p">(</span><span class="n">fpl_obj_solvent</span><span class="p">,</span> <span class="n">task1</span><span class="p">)</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+	<span class="c1">## Task 5 - Small Lammps Simulation</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">task2</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_small_lammps_solv&quot;</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="kc">None</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">1</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">lmp_run_len</span><span class="o">=</span><span class="mi">10000</span>
+	<span class="c1">### ADD TASK</span>
+		<span class="c1"># Note, you can always overwrite the callback function</span>
+		<span class="c1"># tsk = lmp_small_job(fpl_obj_solvent, task2)</span>
+		<span class="c1"># tsk.callback = None</span>
+		<span class="c1"># fpl_obj_solvent.add_task( task2, tsk )</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_small_job</span><span class="p">(</span><span class="n">fpl_obj_solvent</span><span class="p">,</span> <span class="n">task2</span><span class="p">)</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+	<span class="c1"># Store solvent system here</span>
+	<span class="n">solvent_system</span> <span class="o">=</span> <span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">system</span>
+
+	<span class="c1">########################################</span>
+
+	<span class="c1"># Run the simulation here</span>
+	<span class="n">fpl_obj_solvent</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+	<span class="c1">########################################</span>
+
+	<span class="c1">## Task 4 - Calculate Enthalpy of Solvation</span>
+	<span class="c1">### PARAMETERS</span>
+	<span class="n">task4</span> <span class="o">=</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_Hsolv&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="s2">&quot;batch&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span> <span class="o">=</span> <span class="mi">4</span>
+
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route</span> <span class="o">=</span> <span class="n">route_lvls</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">extra_section</span> <span class="o">=</span> <span class="s2">&quot;%basis aux auto NewECP Pb </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewECP Cs </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewGTO S </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end end&quot;</span> 
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity</span> <span class="o">=</span> <span class="n">charge_and_multiplicity</span>
+
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route_solute</span> <span class="o">=</span> <span class="n">route_lvls</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">extra_section_solute</span> <span class="o">=</span> <span class="s2">&quot;%basis aux auto NewECP Pb </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewECP Cs </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewGTO S </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end end&quot;</span> 
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity_solute</span> <span class="o">=</span> <span class="n">charge_and_multiplicity_solute</span>
+
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route_solvent</span> <span class="o">=</span> <span class="n">route_lvls</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">extra_section_solvent</span> <span class="o">=</span> <span class="s2">&quot;%basis aux auto NewECP Pb </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewECP Cs </span><span class="se">\&quot;</span><span class="s2">def2-SD</span><span class="se">\&quot;</span><span class="s2"> </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end NewGTO S </span><span class="se">\&quot;</span><span class="s2">def2-TZVP</span><span class="se">\&quot;</span><span class="s2"> end end&quot;</span> 
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity_solvent</span> <span class="o">=</span> <span class="n">charge_and_multiplicity_solvent</span>
+
+	<span class="c1">### ADD TASK</span>
+	<span class="n">tasks</span> <span class="o">=</span> <span class="n">fpl_calc</span><span class="o">.</span><span class="n">enthalpy_solvation</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">task4</span><span class="p">,</span> <span class="n">solvent_system</span><span class="p">)</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tasks</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+	<span class="n">H_solv</span> <span class="o">=</span> <span class="n">fpl_calc</span><span class="o">.</span><span class="n">post_enthalpy_solvation</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">H_solv</span>
+
+
+<div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order</span>
+<span class="sd">	(MBO) is well described [here](http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract).  In short, it is a numerical representation</span>
+<span class="sd">	of the probability of how many electrons partake in a bond.  For instance,</span>
+<span class="sd">	a single bond would have a theoretical bond order of 1.0; however, in</span>
+<span class="sd">	practice it may have more or less depending on how electrons distribute</span>
+<span class="sd">	across the molecule.  The MBO helps describe this, and the Unsaturated MBO</span>
+<span class="sd">	(UMBO) helps represent this in a more understandable fashion.  That is, </span>
+<span class="sd">	if the UMBO is larger than zero, the bond is weaker than theory.  If the</span>
+<span class="sd">	UMBO is less than zero, then the bond is stronger than theory.</span>
+
+<span class="sd">	**Parameters**</span>
+
+<span class="sd">		cation : *str*</span>
+<span class="sd">			The cation within the perovskite.</span>
+
+<span class="sd">		halide : *str*</span>
+<span class="sd">			The halide within the perovskite.</span>
+
+<span class="sd">		solvent : *str*</span>
+<span class="sd">			The solvent of the system.</span>
+
+<span class="sd">		offset : *float, optional*</span>
+<span class="sd">			The offset supplied to get the UMBO.  In most cases we consider,</span>
+<span class="sd">			this is 2.0 as that is the theoretical bond order of a double</span>
+<span class="sd">			bonded oxygen to sulfur.</span>
+
+<span class="sd">	**Return**</span>
+
+<span class="sd">		UMBO : *float*</span>
+<span class="sd">			The Unsaturation Mayer Bond Order</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_MBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_MBO">[docs]</a><span class="k">def</span> <span class="nf">get_MBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Get the mayer bond order.  The Mayer Bond Order (see get_UMBO) for more</span>
+<span class="sd">	details.</span>
+
+<span class="sd">	**Parameters**</span>
+
+<span class="sd">		cation : *str*</span>
+<span class="sd">			The cation within the perovskite.</span>
+
+<span class="sd">		halide : *str*</span>
+<span class="sd">			The halide within the perovskite.</span>
+
+<span class="sd">		solvent : *str*</span>
+<span class="sd">			The solvent of the system.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="mi">2</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table Of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../frazier-pipeline.html">Frazier PipeLine</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Frazier-PipeLine 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Henry Herbol.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

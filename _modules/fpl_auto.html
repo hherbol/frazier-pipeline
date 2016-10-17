@@ -50,8 +50,8 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Automated calculations for the Frazier Pipeline are as follows:</span>
 
-<span class="sd">- :func:`get_UMBO`</span>
 <span class="sd">- :func:`get_MBO`</span>
+<span class="sd">- :func:`get_UMBO`</span>
 
 <span class="sd">The following is still prone to bugs.  It should work for num_solvents=1;</span>
 <span class="sd">however, any more and it is prone to blowing up (ie, irrationally large</span>
@@ -303,6 +303,30 @@
 	<span class="k">return</span> <span class="n">H_solv</span>
 
 
+<div class="viewcode-block" id="get_MBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_MBO">[docs]</a><span class="k">def</span> <span class="nf">get_MBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more</span>
+<span class="sd">	details.</span>
+
+<span class="sd">	**Parameters**</span>
+
+<span class="sd">		cation: *str*</span>
+<span class="sd">			The cation within the perovskite.</span>
+
+<span class="sd">		halide: *str*</span>
+<span class="sd">			The halide within the perovskite.</span>
+
+<span class="sd">		solvent: *str*</span>
+<span class="sd">			The solvent of the system.</span>
+
+<span class="sd">	**Return**</span>
+
+<span class="sd">		MBO: *float*</span>
+<span class="sd">			The Mayer Bond Order</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="mi">2</span></div>
+
+
 <div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order</span>
@@ -338,29 +362,6 @@
 
 <span class="sd">	&quot;&quot;&quot;</span>
 	<span class="k">return</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="get_MBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_MBO">[docs]</a><span class="k">def</span> <span class="nf">get_MBO</span><span class="p">(</span><span class="n">cation</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">solvent</span><span class="p">):</span>
-	<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more</span>
-<span class="sd">	details.</span>
-
-<span class="sd">	**Parameters**</span>
-
-<span class="sd">		cation: *str*</span>
-<span class="sd">			The cation within the perovskite.</span>
-
-<span class="sd">		halide: *str*</span>
-<span class="sd">			The halide within the perovskite.</span>
-
-<span class="sd">		solvent: *str*</span>
-<span class="sd">			The solvent of the system.</span>
-
-<span class="sd">	**Return**</span>
-
-<span class="sd">		MBO: *float*</span>
-<span class="sd">			The Mayer Bond Order</span>
-<span class="sd">	&quot;&quot;&quot;</span>
-	<span class="k">return</span> <span class="mi">2</span></div>
 </pre></div>
 
           </div>

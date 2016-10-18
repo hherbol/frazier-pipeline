@@ -64,7 +64,8 @@ def generate_lead_halide_cation(halide, cation, run_opt=True):
 	# Get the PbX3 system
 	PbX3 = generate_lead_halide(halide)
 	# Get the cation from the cml file
-	system = structures.Molecule(files.read_cml(cml_path + cation + ".cml", test_charges=False, allow_errors=True)[0])
+	atoms, bonds, _, _ = files.read_cml(cml_path + cation + ".cml", test_charges=False, allow_errors=True)
+	system = structures.Molecule(atoms)
 	# Align along X axis
 	system.atoms = geometry.align_centroid(system.atoms)[0]
 	# Rotate to Z axis
@@ -93,15 +94,16 @@ def generate_lead_halide_cation(halide, cation, run_opt=True):
 	system.atoms += PbX3.atoms
 	
 	# Run a geometry optimization of this system
-	if run_opt:
-		PbXY = orca.job(fname,"! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
-			atoms=system.atoms,
-			extra_section="%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end",
-			queue="batch",
-			procs=2)
-		PbXY.wait()
-		system.atoms = orca.read(fname).atoms
+	new_pos = orca.read(fname).atoms
+	for a,b in zip(system.atoms, new_pos):
+		a.x, a.y, a.z = [b.x, b.y, b.z]
 
-	files.write_cml(system, name=cml_path+fname+".cml")
+	# Set OPLS types
+	for a in system.atoms:
+		if a.element in ["Pb","Cl","Br","I"]:
+			a.type = fpl_constants.atom_types[a.element]
+			a.type_index = a.type["index"]
 
+	# Write cml file so we don't re-generate, and return system
+	files.write_cml(system, bonds=bonds, name=cml_path+fname+".cml")
 	return system

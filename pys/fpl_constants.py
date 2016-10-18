@@ -30,3 +30,10 @@ default_routes = ["! HF SV ECP{def2-TZVP}",
          "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"]
 
 cml_dir="/fs/home/hch54/frazier-pipeline/cml/"
+
+atom_types = {
+  "Pb" : {'bond_count': 0, 'style': 'lj/cut', 'vdw_r': 3.81661, 'index': 356, 'notes': 'Barium Ion Ba+2', 'element': 56, 'vdw_e': 0.047096, 'charge': 2.0, 'mass': 137.33, 'index2': 76, 'element_name': 'Ba'},
+  "Cl" : {'bond_count': 0, 'style': 'lj/cut', 'vdw_r': 4.02, 'index': 344, 'notes': 'Chloride Ion Cl-', 'element': 17, 'vdw_e': 0.71, 'charge': -1.0, 'mass': 35.453, 'index2': 21, 'element_name': 'Cl'},
+  "Br" : {'bond_count': 0, 'style': 'lj/cut', 'vdw_r': 4.28, 'index': 345, 'notes': 'Bromide Ion Br-', 'element': 35, 'vdw_e': 0.71, 'charge': -1.0, 'mass': 79.904, 'index2': 65, 'element_name': 'Br'},
+  "I" : {'bond_count': 0, 'style': 'lj/cut', 'vdw_r': 4.81, 'index': 346, 'notes': 'Iodide Ion I-', 'element': 53, 'vdw_e': 0.71, 'charge': -1.0, 'mass': 126.905, 'index2': 66, 'element_name': 'I'}
+}

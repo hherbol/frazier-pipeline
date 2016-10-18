@@ -94,9 +94,16 @@ def generate_lead_halide_cation(halide, cation, run_opt=True):
 	system.atoms += PbX3.atoms
 	
 	# Run a geometry optimization of this system
-	new_pos = orca.read(fname).atoms
-	for a,b in zip(system.atoms, new_pos):
-		a.x, a.y, a.z = [b.x, b.y, b.z]
+	if run_opt:
+		PbXY = orca.job(fname,"! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
+			atoms=system.atoms,
+			extra_section="%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end",
+			queue="batch",
+			procs=2)
+		PbXY.wait()
+		new_pos = orca.read(fname).atoms
+		for a,b in zip(system.atoms, new_pos):
+			a.x, a.y, a.z = [b.x, b.y, b.z]
 
 	# Set OPLS types
 	for a in system.atoms:

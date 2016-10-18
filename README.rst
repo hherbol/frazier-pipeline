@@ -37,13 +37,13 @@ Documentation is necessary, and the following steps MUST be followed during cont
 
 Documentation is done using ReStructuredText_ format docstrings, the Sphinx_ python package, and indices with autodoc extensions.  To add more documentation, first add the file to be included in `docs/source/conf.py` under `os.path.abspath('example/dir/to/script.py')`.  Secondly, ensure that you have proper docstrings in the python file, and finally run `make full` to re-generate the documentation and commit it to your local branch, as well as the git *gh-pages* branch.
 
-For anymore information on documentation, the tutorial follwed can be found here_.
+For anymore information on documentation, here is a link to the followed tutorial_.
 
 .. _tutorial: https://www.atlassian.com/git/tutorials/using-branches/git-branch
 .. _Sphinx: http://www.sphinx-doc.org/en/stable/
 .. _pip: https://pip.pypa.io/en/stable/installing/
 .. _ReStructuredText: http://docutils.sourceforge.net/docs/user/rst/quickref.html
-.. _here: https://daler.github.io/sphinxdoc-test/includeme.html
+.. _tutorial: https://daler.github.io/sphinxdoc-test/includeme.html
 
 Using FPL
 ------------------------------

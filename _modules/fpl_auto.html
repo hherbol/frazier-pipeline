@@ -68,10 +68,13 @@
 <span class="kn">import</span> <span class="nn">types</span>
 
 <span class="kn">import</span> <span class="nn">jobs</span>
+<span class="kn">import</span> <span class="nn">files</span>
+<span class="kn">import</span> <span class="nn">geometry</span>
 
 <span class="kn">import</span> <span class="nn">fpl</span>
 <span class="kn">import</span> <span class="nn">fpl_calc</span>
 <span class="kn">import</span> <span class="nn">fpl_constants</span>
+<span class="kn">import</span> <span class="nn">fpl_utils</span>
 <span class="kn">from</span> <span class="nn">fpl_lmp_large</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_large_job</span>
 <span class="kn">from</span> <span class="nn">fpl_lmp_small</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">lmp_small_job</span>
 <span class="kn">from</span> <span class="nn">fpl_orca</span> <span class="k">import</span> <span class="n">job</span> <span class="k">as</span> <span class="n">orca_job</span>
@@ -305,7 +308,10 @@
 
 
 <div class="viewcode-block" id="get_MBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_MBO">[docs]</a><span class="k">def</span> <span class="nf">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span>
-			<span class="n">num_solvents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+			<span class="n">num_solvents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+			<span class="n">route_lvls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+			<span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+			<span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;*&quot;</span><span class="p">]]):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more</span>
 <span class="sd">	details.</span>
@@ -321,10 +327,20 @@
 <span class="sd">		solvent: *str*</span>
 <span class="sd">			The solvent of the system.</span>
 
+<span class="sd">		avg: *bool, optional*</span>
+<span class="sd">			Whether to average together all UMBO&#39;s that match the given</span>
+<span class="sd">			criteria.</span>
+
+<span class="sd">		criteria: *list, list, str, optional*</span>
+<span class="sd">			A list of lists, each list holding a list describing what bonds</span>
+<span class="sd">			you want the UMBO for.  By default, it is every bond with an</span>
+<span class="sd">			oxygen atom involved.</span>
+
 <span class="sd">	**Return**</span>
 
-<span class="sd">		MBO: *float*</span>
-<span class="sd">			The Mayer Bond Order</span>
+<span class="sd">		MBO: *list, float, or float*</span>
+<span class="sd">			The Mayer Bond Order. If avg is False and there are more than one</span>
+<span class="sd">			MBO matching criteria, a list is returned.</span>
 <span class="sd">	&quot;&quot;&quot;</span>	
 	<span class="c1"># Get string for solute</span>
 	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">halide</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
@@ -342,6 +358,12 @@
 	<span class="n">fpl_obj</span> <span class="o">=</span> <span class="n">fpl</span><span class="o">.</span><span class="n">fpl_job</span><span class="p">(</span><span class="n">run_name</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">solute</span><span class="p">)</span>
 	<span class="c1">## PARAMETERS SET HERE #########################################################</span>
 	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">num_solvents</span> <span class="o">=</span> <span class="n">num_solvents</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route_lvls</span> <span class="o">=</span> <span class="n">route_lvls</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity</span> <span class="o">=</span> <span class="s2">&quot;0 1&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity_solute</span> <span class="o">=</span> <span class="s2">&quot;0 1&quot;</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity_solvent</span> <span class="o">=</span> <span class="s2">&quot;0 1&quot;</span>
+	<span class="c1">## Generate the system</span>
+	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">generate_system</span><span class="p">()</span>
 	<span class="c1">########################################</span>
 	<span class="c1">## Task 1 - Large Lammps Simulation for annealing solvents</span>
 	<span class="c1">### PARAMETERS</span>
@@ -367,7 +389,6 @@
 	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">queue</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span>
 	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">procs</span><span class="o">=</span><span class="mi">4</span>
 	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">route</span> <span class="o">=</span> <span class="n">route_lvls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">charge_and_multiplicity</span> <span class="o">=</span> <span class="n">charge_and_multiplicity</span>
 	<span class="c1">### ADD TASK</span>
 	<span class="n">task</span> <span class="o">=</span> <span class="n">orca_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_orca&quot;</span><span class="p">)</span>
 	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
@@ -380,13 +401,28 @@
 	<span class="n">MBOs</span> <span class="o">=</span> <span class="n">fpl_obj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">MBO</span>
 	<span class="c1"># Find all MBOs for Oxygen and return them</span>
 	<span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="c1"># Loop through all mbos</span>
 	<span class="k">for</span> <span class="n">mbo</span> <span class="ow">in</span> <span class="n">MBOs</span><span class="p">:</span>
-		<span class="k">if</span> <span class="s2">&quot;O&quot;</span> <span class="ow">in</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">element</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mbo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
-			<span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mbo</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="c1"># Loop through criteria</span>
+		<span class="k">for</span> <span class="n">crit</span> <span class="ow">in</span> <span class="n">criteria</span><span class="p">:</span>
+			<span class="c1"># Get a list holding elements in MBO bond as c0,c1</span>
+			<span class="n">chk</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">element</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mbo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+			<span class="c1"># If wildcard for c0, or if c0 is in mbo bond</span>
+			<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span> <span class="ow">or</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
+				<span class="c1"># Remove c0 from mbo bond check (if it&#39;s there)</span>
+				<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
+					<span class="k">del</span> <span class="n">chk</span><span class="p">[</span><span class="n">chk</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+				<span class="c1"># And check if c1 is wildcard, or in mbo bond</span>
+				<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span> <span class="ow">or</span> <span class="n">crit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
+					<span class="c1"># If so, store this mbo</span>
+					<span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mbo</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+	<span class="k">if</span> <span class="n">avg</span><span class="p">:</span>
+		<span class="n">vals</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
 
 	<span class="k">return</span> <span class="n">vals</span></div>
 
-<div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span> <span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
+<div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span> <span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;*&quot;</span><span class="p">]]):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order</span>
 <span class="sd">	(MBO) is well described `here &lt;http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract&gt;`_.  In short, it is a numerical representation</span>
@@ -414,17 +450,24 @@
 <span class="sd">			this is 2.0 as that is the theoretical bond order of a double</span>
 <span class="sd">			bonded oxygen to sulfur.</span>
 
+<span class="sd">		avg: *bool, optional*</span>
+<span class="sd">			Whether to average together all UMBO&#39;s that match the given</span>
+<span class="sd">			criteria.</span>
+
+<span class="sd">		criteria: *list, list, str, optional*</span>
+<span class="sd">			A list of lists, each list holding a list describing what bonds</span>
+<span class="sd">			you want the UMBO for.  By default, it is every bond with an</span>
+<span class="sd">			oxygen atom involved.</span>
+
 <span class="sd">	**Return**</span>
 
-<span class="sd">		UMBO: *float*</span>
-<span class="sd">			The Unsaturation Mayer Bond Order</span>
+<span class="sd">		UMBO: *list, float, or float*</span>
+<span class="sd">			The Unsaturation Mayer Bond Order. If avg is False and there are</span>
+<span class="sd">			more than one UMBO matching criteria, a list is returned.</span>
 
 <span class="sd">	&quot;&quot;&quot;</span>
-	<span class="n">vals</span> <span class="o">=</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">)</span>
-	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-		<span class="k">return</span> <span class="p">[</span><span class="n">offset</span> <span class="o">-</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
-	<span class="k">else</span><span class="p">:</span>
-		<span class="k">return</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">vals</span></div>
+	<span class="n">vals</span> <span class="o">=</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="n">avg</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
+	<span class="n">umbos</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">vals</span></div>
 </pre></div>
 
           </div>

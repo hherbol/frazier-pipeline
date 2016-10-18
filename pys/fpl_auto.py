@@ -260,7 +260,9 @@ print e_solv
 
 def get_MBO(halide, cation, solvent,
 			num_solvents = 1,
-			route_lvls = [1,1,1,1]):
+			route_lvls = [1,1,1,1],
+			avg=True,
+			criteria=[["O","*"]]):
 	"""
 	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more
 	details.
@@ -276,10 +278,20 @@ def get_MBO(halide, cation, solvent,
 		solvent: *str*
 			The solvent of the system.
 
+		avg: *bool, optional*
+			Whether to average together all UMBO's that match the given
+			criteria.
+
+		criteria: *list, list, str, optional*
+			A list of lists, each list holding a list describing what bonds
+			you want the UMBO for.  By default, it is every bond with an
+			oxygen atom involved.
+
 	**Return**
 
-		MBO: *float*
-			The Mayer Bond Order
+		MBO: *list, float, or float*
+			The Mayer Bond Order. If avg is False and there are more than one
+			MBO matching criteria, a list is returned.
 	"""	
 	# Get string for solute
 	if type(halide) is str:
@@ -340,13 +352,28 @@ def get_MBO(halide, cation, solvent,
 	MBOs = fpl_obj.data.MBO
 	# Find all MBOs for Oxygen and return them
 	vals = []
+	# Loop through all mbos
 	for mbo in MBOs:
-		if "O" in [a.element for a in mbo[0]]:
-			vals.append(mbo[1])
+		# Loop through criteria
+		for crit in criteria:
+			# Get a list holding elements in MBO bond as c0,c1
+			chk = [a.element for a in mbo[0]]
+			# If wildcard for c0, or if c0 is in mbo bond
+			if crit[0] == "*" or crit[0] in chk:
+				# Remove c0 from mbo bond check (if it's there)
+				if crit[0] in chk:
+					del chk[chk.index(crit[0])]
+				# And check if c1 is wildcard, or in mbo bond
+				if crit[1] == "*" or crit[1] in chk:
+					# If so, store this mbo
+					vals.append(mbo[1])
+
+	if avg:
+		vals = sum(vals)/float(len(vals))
 
 	return vals
 
-def get_UMBO(halide, cation , solvent, offset=2.0):
+def get_UMBO(halide, cation , solvent, offset=2.0, avg=True, criteria=[["O","*"]]):
 	"""
 	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
 	(MBO) is well described `here <http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract>`_.  In short, it is a numerical representation
@@ -374,14 +401,21 @@ def get_UMBO(halide, cation , solvent, offset=2.0):
 			this is 2.0 as that is the theoretical bond order of a double
 			bonded oxygen to sulfur.
 
+		avg: *bool, optional*
+			Whether to average together all UMBO's that match the given
+			criteria.
+
+		criteria: *list, list, str, optional*
+			A list of lists, each list holding a list describing what bonds
+			you want the UMBO for.  By default, it is every bond with an
+			oxygen atom involved.
+
 	**Return**
 
-		UMBO: *float*
-			The Unsaturation Mayer Bond Order
+		UMBO: *list, float, or float*
+			The Unsaturation Mayer Bond Order. If avg is False and there are
+			more than one UMBO matching criteria, a list is returned.
 
 	"""
-	vals = get_MBO(halide, cation, solvent)
-	if type(vals) is list:
-		return [offset - v for v in vals]
-	else:
-		return offset - vals
+	vals = get_MBO(halide, cation, solvent, avg=avg, criteria=criteria)
+	umbos = offset - vals

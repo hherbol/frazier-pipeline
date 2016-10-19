@@ -262,7 +262,7 @@ def get_MBO(halide, cation, solvent,
 			num_solvents = 1,
 			route_lvls = [1,1,1,1],
 			avg=True,
-			criteria=[["O","*"]]):
+			criteria=[["O","C"],["O","N"],["O","S"]]):
 	"""
 	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more
 	details.
@@ -373,7 +373,7 @@ def get_MBO(halide, cation, solvent,
 
 	return vals
 
-def get_UMBO(halide, cation , solvent, offset=2.0, avg=True, criteria=[["O","*"]]):
+def get_UMBO(halide, cation , solvent, offset=2.0, avg=True, criteria=[["O","C"],["O","N"],["O","S"]]):
 	"""
 	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
 	(MBO) is well described `here <http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract>`_.  In short, it is a numerical representation
@@ -419,3 +419,4 @@ def get_UMBO(halide, cation , solvent, offset=2.0, avg=True, criteria=[["O","*"]
 	"""
 	vals = get_MBO(halide, cation, solvent, avg=avg, criteria=criteria)
 	umbos = offset - vals
+	return umbos

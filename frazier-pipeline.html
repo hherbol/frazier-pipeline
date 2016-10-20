@@ -99,7 +99,7 @@ calculations.</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="fpl_auto.get_MBO">
-<code class="descclassname">fpl_auto.</code><code class="descname">get_MBO</code><span class="sig-paren">(</span><em>halide, cation, solvent, num_solvents=1, route_lvls=[1, 1, 1, 1], avg=True, criteria=[['O', '*']]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_MBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_MBO" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">fpl_auto.</code><code class="descname">get_MBO</code><span class="sig-paren">(</span><em>halide, cation, solvent, num_solvents=1, route_lvls=[0, 0, 0, 0], avg=True, criteria=[['O', 'C'], ['O', 'N'], ['O', 'S']]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_MBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_MBO" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the mayer bond order.  The Mayer Bond Order (see <a class="reference internal" href="#fpl_auto.get_UMBO" title="fpl_auto.get_UMBO"><code class="xref py py-func docutils literal"><span class="pre">get_UMBO()</span></code></a>) for more
 details.</p>
 <p><strong>Parameters</strong></p>
@@ -111,6 +111,11 @@ details.</p>
 <dd>The cation within the perovskite.</dd>
 <dt>solvent: <em>str</em></dt>
 <dd>The solvent of the system.</dd>
+<dt>num_solvents: <em>int, optional</em></dt>
+<dd>The number of solvents to model explicitly (implicit is always on
+in background).</dd>
+<dt>route_lvls: <em>list, int, optional</em></dt>
+<dd>The level of theory to use.</dd>
 <dt>avg: <em>bool, optional</em></dt>
 <dd>Whether to average together all UMBO&#8217;s that match the given
 criteria.</dd>
@@ -132,7 +137,7 @@ MBO matching criteria, a list is returned.</dd>
 
 <dl class="function">
 <dt id="fpl_auto.get_UMBO">
-<code class="descclassname">fpl_auto.</code><code class="descname">get_UMBO</code><span class="sig-paren">(</span><em>halide, cation, solvent, offset=2.0, avg=True, criteria=[['O', '*']]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_UMBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_UMBO" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">fpl_auto.</code><code class="descname">get_UMBO</code><span class="sig-paren">(</span><em>halide, cation, solvent, offset=2.0, num_solvents=1, route_lvls=[0, 0, 0, 0], avg=True, criteria=[['O', 'C'], ['O', 'N'], ['O', 'S']]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_UMBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_UMBO" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
 (MBO) is well described <a class="reference external" href="http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract">here</a>.  In short, it is a numerical representation
 of the probability of how many electrons partake in a bond.  For instance,
@@ -151,6 +156,11 @@ UMBO is less than zero, then the bond is stronger than theory.</p>
 <dd>The cation within the perovskite.</dd>
 <dt>solvent: <em>str</em></dt>
 <dd>The solvent of the system.</dd>
+<dt>num_solvents: <em>int, optional</em></dt>
+<dd>The number of solvents to model explicitly (implicit is always on
+in background).</dd>
+<dt>route_lvls: <em>list, int, optional</em></dt>
+<dd>The level of theory to use.</dd>
 <dt>offset: <em>float, optional</em></dt>
 <dd>The offset supplied to get the UMBO.  In most cases we consider,
 this is 2.0 as that is the theoretical bond order of a double

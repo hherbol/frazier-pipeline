@@ -309,9 +309,9 @@
 
 <div class="viewcode-block" id="get_MBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_MBO">[docs]</a><span class="k">def</span> <span class="nf">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span>
 			<span class="n">num_solvents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-			<span class="n">route_lvls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+			<span class="n">route_lvls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
 			<span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-			<span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;*&quot;</span><span class="p">]]):</span>
+			<span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;N&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;S&quot;</span><span class="p">]]):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more</span>
 <span class="sd">	details.</span>
@@ -326,6 +326,13 @@
 
 <span class="sd">		solvent: *str*</span>
 <span class="sd">			The solvent of the system.</span>
+
+<span class="sd">		num_solvents: *int, optional*</span>
+<span class="sd">			The number of solvents to model explicitly (implicit is always on</span>
+<span class="sd">			in background).</span>
+
+<span class="sd">		route_lvls: *list, int, optional*</span>
+<span class="sd">			The level of theory to use.</span>
 
 <span class="sd">		avg: *bool, optional*</span>
 <span class="sd">			Whether to average together all UMBO&#39;s that match the given</span>
@@ -422,7 +429,11 @@
 
 	<span class="k">return</span> <span class="n">vals</span></div>
 
-<div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span> <span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;*&quot;</span><span class="p">]]):</span>
+<div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span> <span class="p">,</span> <span class="n">solvent</span><span class="p">,</span>
+			<span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> 
+			<span class="n">num_solvents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+			<span class="n">route_lvls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+			<span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;N&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;S&quot;</span><span class="p">]]):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order</span>
 <span class="sd">	(MBO) is well described `here &lt;http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract&gt;`_.  In short, it is a numerical representation</span>
@@ -445,6 +456,13 @@
 <span class="sd">		solvent: *str*</span>
 <span class="sd">			The solvent of the system.</span>
 
+<span class="sd">		num_solvents: *int, optional*</span>
+<span class="sd">			The number of solvents to model explicitly (implicit is always on</span>
+<span class="sd">			in background).</span>
+
+<span class="sd">		route_lvls: *list, int, optional*</span>
+<span class="sd">			The level of theory to use.</span>
+
 <span class="sd">		offset: *float, optional*</span>
 <span class="sd">			The offset supplied to get the UMBO.  In most cases we consider,</span>
 <span class="sd">			this is 2.0 as that is the theoretical bond order of a double</span>
@@ -464,10 +482,10 @@
 <span class="sd">		UMBO: *list, float, or float*</span>
 <span class="sd">			The Unsaturation Mayer Bond Order. If avg is False and there are</span>
 <span class="sd">			more than one UMBO matching criteria, a list is returned.</span>
-
 <span class="sd">	&quot;&quot;&quot;</span>
-	<span class="n">vals</span> <span class="o">=</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="n">avg</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
-	<span class="n">umbos</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">vals</span></div>
+	<span class="n">vals</span> <span class="o">=</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="n">avg</span><span class="p">,</span> <span class="n">num_solvents</span><span class="o">=</span><span class="n">num_solvents</span><span class="p">,</span> <span class="n">route_lvls</span><span class="o">=</span><span class="n">route_lvls</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
+	<span class="n">umbos</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">vals</span>
+	<span class="k">return</span> <span class="n">umbos</span></div>
 </pre></div>
 
           </div>

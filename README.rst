@@ -10,19 +10,19 @@ Currently installation involves first installing clancelot:
 
 .. code-block:: bash
 
-   $ cd ~; git clone git@github.com:clancylab/clancelot2.0.git
+   [user@local]~% cd ~; git clone git@github.com:clancylab/clancelot2.0.git
 
 And then cloning this project:
 
 .. code-block:: bash
 
-   $ cd ~; git clone git@github.com:hherbol/frazier-pipeline.git
+   [user@local]~% cd ~; git clone git@github.com:hherbol/frazier-pipeline.git
 
 Note, you'll also have to append the frazier-pipeline/pys folder to your PYTHONPATH variable.
 
 .. code-block:: bash
 
-   $ echo '\\nexport PYTHONPATH="/PATH/TO/FRAZIER/PIPELINE/pys:$PYTHONPATH"' >> ~/.zshrc
+   [user@local]~% echo '\nexport PYTHONPATH="/PATH/TO/FRAZIER/PIPELINE/pys:$PYTHONPATH"' >> ~/.zshrc
 
 Documentation
 ------------------------------

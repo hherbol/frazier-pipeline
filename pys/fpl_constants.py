@@ -24,9 +24,14 @@ default_angles = {"type":structures.Struct(),
                   "e":37.5,
                   "index2s":(13, 13, 46)}
 
-default_routes = ["! HF SV ECP{def2-TZVP}",
-         "! OPT HF SV ECP{def2-TZVP} LooseOpt",
-         "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
+# For debugging
+#default_routes = ["! HF SV ECP{def2-TZVP}",
+#         "! OPT HF SV ECP{def2-TZVP} LooseOpt",
+#         "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
+#         "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"]
+
+# For actual use
+default_routes = ["! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
          "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"]
 
 cml_dir="/fs/europa/g_pc/fpl/cml/"

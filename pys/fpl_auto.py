@@ -260,7 +260,7 @@ print e_solv
 
 def get_MBO(halide, cation, solvent,
 			num_solvents = 1,
-			route_lvls = [1,1,1,1],
+			route_lvls = [0,0,0,0],
 			avg=True,
 			criteria=[["O","C"],["O","N"],["O","S"]]):
 	"""
@@ -277,6 +277,13 @@ def get_MBO(halide, cation, solvent,
 
 		solvent: *str*
 			The solvent of the system.
+
+		num_solvents: *int, optional*
+			The number of solvents to model explicitly (implicit is always on
+			in background).
+
+		route_lvls: *list, int, optional*
+			The level of theory to use.
 
 		avg: *bool, optional*
 			Whether to average together all UMBO's that match the given
@@ -373,7 +380,11 @@ def get_MBO(halide, cation, solvent,
 
 	return vals
 
-def get_UMBO(halide, cation , solvent, offset=2.0, avg=True, criteria=[["O","C"],["O","N"],["O","S"]]):
+def get_UMBO(halide, cation , solvent,
+			offset=2.0, 
+			num_solvents = 1,
+			route_lvls = [0,0,0,0],
+			avg=True, criteria=[["O","C"],["O","N"],["O","S"]]):
 	"""
 	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
 	(MBO) is well described `here <http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract>`_.  In short, it is a numerical representation
@@ -396,6 +407,13 @@ def get_UMBO(halide, cation , solvent, offset=2.0, avg=True, criteria=[["O","C"]
 		solvent: *str*
 			The solvent of the system.
 
+		num_solvents: *int, optional*
+			The number of solvents to model explicitly (implicit is always on
+			in background).
+
+		route_lvls: *list, int, optional*
+			The level of theory to use.
+
 		offset: *float, optional*
 			The offset supplied to get the UMBO.  In most cases we consider,
 			this is 2.0 as that is the theoretical bond order of a double
@@ -415,8 +433,7 @@ def get_UMBO(halide, cation , solvent, offset=2.0, avg=True, criteria=[["O","C"]
 		UMBO: *list, float, or float*
 			The Unsaturation Mayer Bond Order. If avg is False and there are
 			more than one UMBO matching criteria, a list is returned.
-
 	"""
-	vals = get_MBO(halide, cation, solvent, avg=avg, criteria=criteria)
+	vals = get_MBO(halide, cation, solvent, avg=avg, num_solvents=num_solvents, route_lvls=route_lvls, criteria=criteria)
 	umbos = offset - vals
 	return umbos

@@ -19,12 +19,15 @@ For a quick start guide, in theory the following will suffice:
 
 	halides = [ "Cl", "Br", "I" ]
 	cations = ["MA","FA","Cs"]
+
+	# Due to not having all the solvent densities and dielectrics in
+	# fpl_constants, only the following are currently available.
 	solvents = ["acetone",
-				"gbl",
-				"DMF",
-				"dmso",
-				"nmp",
-				"THTO"]
+                "gbl",
+                "DMF",
+                "dmso",
+                "nmp",
+                "THTO"]
 
 	# Note, you can also do mixed halides by passing a list of halides
 	# such as h = ["Cl","Cl","I"].  In this example though, we just

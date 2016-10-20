@@ -11,6 +11,35 @@ calculations.
 
 - :func:`get_enthalpy_solvation`
 
+For a quick start guide, in theory the following will suffice:
+
+.. code-block:: python
+
+	import fpl_auto
+
+	halides = [ "Cl", "Br", "I" ]
+	cations = ["MA","FA","Cs"]
+	solvents = ["acetone",
+				"ACN",
+				"gbl",
+				"DMF",
+				"dmso",
+				"nmp",
+				"methacrolein",
+				"nitromethane",
+				"odcb",
+				"THF",
+				"THTO"]
+
+	# Note, you can also do mixed halides by passing a list of halides
+	# such as h = ["Cl","Cl","I"].  In this example though, we just
+	# have h = "Cl" which is equivalent to h = ["Cl","Cl","Cl"]
+	h, c, s = halides[0], cations[0], solvents[0]
+
+	# Get the UMBO of the Oxygen-Carbon bond in a single Acetone molecule 
+	# adsorbed onto a solute of PbCl3MA
+	umbo = fpl_auto.get_UMBO(h,c,s)
+
 ------------
 
 """

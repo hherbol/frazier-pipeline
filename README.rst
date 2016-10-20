@@ -35,7 +35,9 @@ Documentation is necessary, and the following steps MUST be followed during cont
 
 2. Wherever you have *frazier-pipeline* installed, you want another folder called *frazier-pipeline-docs* (NOT as a subfolder of frazier-pipeline).
 
-	cd ~; mkdir frazier-pipeline-docs; cd frazier-pipeline-docs; git clone -b gh-pages git@github.com:hherbol/frazier-pipeline.git html
+.. code-block:: bash
+
+   [user@local]~% cd ~; mkdir frazier-pipeline-docs; cd frazier-pipeline-docs; git clone -b gh-pages git@github.com:hherbol/frazier-pipeline.git html
 
 3. Forever more just ignore that directory (don't delete it though)
 

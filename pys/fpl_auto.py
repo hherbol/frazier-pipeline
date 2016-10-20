@@ -20,15 +20,10 @@ For a quick start guide, in theory the following will suffice:
 	halides = [ "Cl", "Br", "I" ]
 	cations = ["MA","FA","Cs"]
 	solvents = ["acetone",
-				"ACN",
 				"gbl",
 				"DMF",
 				"dmso",
 				"nmp",
-				"methacrolein",
-				"nitromethane",
-				"odcb",
-				"THF",
 				"THTO"]
 
 	# Note, you can also do mixed halides by passing a list of halides

@@ -29,7 +29,7 @@ default_routes = ["! HF SV ECP{def2-TZVP}",
          "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
          "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"]
 
-cml_dir="/fs/home/hch54/frazier-pipeline/cml/"
+cml_dir="/fs/europa/g_pc/fpl/cml/"
 
 atom_types = {
   "Pb" : {'bond_count': 0, 'style': 'lj/cut', 'vdw_r': 3.81661, 'index': 356, 'notes': 'Barium Ion Ba+2', 'element': 56, 'vdw_e': 0.047096, 'charge': 2.0, 'mass': 137.33, 'index2': 76, 'element_name': 'Ba'},

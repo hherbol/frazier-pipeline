@@ -60,6 +60,35 @@
 
 <span class="sd">- :func:`get_enthalpy_solvation`</span>
 
+<span class="sd">For a quick start guide, in theory the following will suffice:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">	import fpl_auto</span>
+
+<span class="sd">	halides = [ &quot;Cl&quot;, &quot;Br&quot;, &quot;I&quot; ]</span>
+<span class="sd">	cations = [&quot;MA&quot;,&quot;FA&quot;,&quot;Cs&quot;]</span>
+<span class="sd">	solvents = [&quot;acetone&quot;,</span>
+<span class="sd">				&quot;ACN&quot;,</span>
+<span class="sd">				&quot;gbl&quot;,</span>
+<span class="sd">				&quot;DMF&quot;,</span>
+<span class="sd">				&quot;dmso&quot;,</span>
+<span class="sd">				&quot;nmp&quot;,</span>
+<span class="sd">				&quot;methacrolein&quot;,</span>
+<span class="sd">				&quot;nitromethane&quot;,</span>
+<span class="sd">				&quot;odcb&quot;,</span>
+<span class="sd">				&quot;THF&quot;,</span>
+<span class="sd">				&quot;THTO&quot;]</span>
+
+<span class="sd">	# Note, you can also do mixed halides by passing a list of halides</span>
+<span class="sd">	# such as h = [&quot;Cl&quot;,&quot;Cl&quot;,&quot;I&quot;].  In this example though, we just</span>
+<span class="sd">	# have h = &quot;Cl&quot; which is equivalent to h = [&quot;Cl&quot;,&quot;Cl&quot;,&quot;Cl&quot;]</span>
+<span class="sd">	h, c, s = halides[0], cations[0], solvents[0]</span>
+
+<span class="sd">	# Get the UMBO of the Oxygen-Carbon bond in a single Acetone molecule </span>
+<span class="sd">	# adsorbed onto a solute of PbCl3MA</span>
+<span class="sd">	umbo = fpl_auto.get_UMBO(h,c,s)</span>
+
 <span class="sd">------------</span>
 
 <span class="sd">&quot;&quot;&quot;</span>

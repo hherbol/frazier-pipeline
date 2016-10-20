@@ -16,7 +16,7 @@ And then cloning this project:
 
 Note, you'll also have to append the frazier-pipeline/pys folder to your PYTHONPATH variable.
 
-	echo '\nexport PYTHONPATH="/PATH/TO/FRAZIER/PIPELINE/pys:$PYTHONPATH"' >> ~/.zshrc
+	echo '\\nexport PYTHONPATH="/PATH/TO/FRAZIER/PIPELINE/pys:$PYTHONPATH"' >> ~/.zshrc
 
 Documentation
 ------------------------------

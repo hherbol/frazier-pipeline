@@ -72,7 +72,7 @@ fpl_job.start(on_queue=None)
 
 		# DFT Parameters are here
 		self.route = "! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt"
-		self.extra_section = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end"
+		self.extra_section = fpl_constants.extra_section
 		self.grad = False
 		self.charge = None
 		self.multiplicity = None

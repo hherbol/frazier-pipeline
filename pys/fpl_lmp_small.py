@@ -54,7 +54,10 @@ group immobile subtract all mobile
 
 $IMOBILE$
 
-minimize 1.0e-4 1.0e-6 1000 10000
+#minimize 1.0e-4 1.0e-6 100 1000
+fix relax mobile nve/limit 0.1
+run 10000
+unfix relax
 
 velocity mobile create 100.0 $SEED$ rot yes dist gaussian
 velocity immobile set 0.0 0.0 0.0
@@ -63,9 +66,6 @@ fix motion mobile nvt temp 100.0 100.0 100.0
 
 timestep 1.0
 run $RUN_LEN$
-#run 300
-
-minimize 1.0e-4 1.0e-6 1000 10000
 
 write_restart $RUN_NAME$.restart'''
 

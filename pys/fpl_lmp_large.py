@@ -52,9 +52,13 @@ def callback_strip_solvents(fpl_obj):
 		index_of_solute = diffs.index(min(diffs))
 
 		m_solute = system.molecules[index_of_solute]
+		#new_center = m_solute.get_center_of_geometry(skip_H=True)
+		index_of_ion = [i for i,a in enumerate(m_solute.atoms) if a.element == fpl_obj.ion][0]
+		ion = m_solute.atoms[index_of_ion]
+		new_center = [ion.x, ion.y, ion.z]
 
 		for m in system.molecules: # Get list of molecules and distances from solute molecule
-			R = sum([(a-b)**2 for a,b in zip(m_solute.get_center_of_geometry(skip_H=True),m.get_center_of_geometry(skip_H=True))])/3.0
+			R = sum([(a-b)**2 for a,b in zip(new_center,m.get_center_of_geometry(skip_H=True))])/3.0
 			molecules_in_cluster.append( (R,m) )
 	else:
 		origin = structures.Atom('X',0.0,0.0,0.0)

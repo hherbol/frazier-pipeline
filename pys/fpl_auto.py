@@ -286,6 +286,7 @@ print e_solv
 
 
 def get_MBO(halide, cation, solvent,
+			ion="Pb",
 			num_solvents = 1,
 			route_lvls = [0,0,0,0],
 			avg=True,
@@ -304,6 +305,10 @@ def get_MBO(halide, cation, solvent,
 
 		solvent: *str*
 			The solvent of the system.
+
+		ion: *str, optional*
+			The ion of the perovskite.  By default this is Pb, but can also
+			be Sn.
 
 		num_solvents: *int, optional*
 			The number of solvents to model explicitly (implicit is always on
@@ -328,14 +333,16 @@ def get_MBO(halide, cation, solvent,
 			MBO matching criteria, a list is returned.
 	"""	
 	# Get string for solute
-	if type(halide) is str:
-		solute = "Pb"+halide+"3"+cation
-	else:
-		solute = "Pb"+"".join([x + str(halide.count(x)) if halide.count(x) > 1 else x for x in geometry.reduce_list(halide)])+cation
+	solute = fpl_utils.reduce_to_name(ion, halide, cation)
 
 	# Get molecules for solute and solvent
-	M_solute = fpl_utils.generate_lead_halide_cation(halide, cation)
-	M_solvent = files.read_cml(fpl_constants.cml_dir+solvent+".cml")
+	#M_solute = fpl_utils.generate_lead_halide_cation(halide, cation, ion=ion)
+	#if os.path.exists(fpl_constants.cml_dir+solvent.lower()+".cml"):
+		#M_solvent = files.read_cml(fpl_constants.cml_dir+solvent.lower()+".cml")
+	#elif os.path.exists(fpl_constants.cml_dir+solvent.upper()+".cml"):
+		#M_solvent = files.read_cml(fpl_constants.cml_dir+solvent.upper()+".cml")
+	#else:
+		#raise Exception("Solvent file %s.cml does not exist in %s.  Ensure you gave the file exists and re-run." % (solvent, fpl_constants.cml_dir))
 
 	# Setup workflow manager
 	################################################################################
@@ -347,8 +354,9 @@ def get_MBO(halide, cation, solvent,
 	fpl_obj.charge_and_multiplicity = "0 1"
 	fpl_obj.charge_and_multiplicity_solute = "0 1"
 	fpl_obj.charge_and_multiplicity_solvent = "0 1"
+	fpl_obj.ion = ion
 	## Generate the system
-	fpl_obj.generate_system()
+	fpl_obj.generate_system(halide, cation, ion=ion)
 	########################################
 	## Task 1 - Large Lammps Simulation for annealing solvents
 	### PARAMETERS
@@ -408,6 +416,7 @@ def get_MBO(halide, cation, solvent,
 	return vals
 
 def get_UMBO(halide, cation , solvent,
+			ion="Pb",
 			offset=2.0, 
 			num_solvents = 1,
 			route_lvls = [0,0,0,0],
@@ -433,6 +442,10 @@ def get_UMBO(halide, cation , solvent,
 
 		solvent: *str*
 			The solvent of the system.
+
+		ion: *str, optional*
+			The ion of the perovskite.  By default this is Pb, but can also
+			be Sn.
 
 		num_solvents: *int, optional*
 			The number of solvents to model explicitly (implicit is always on
@@ -461,6 +474,6 @@ def get_UMBO(halide, cation , solvent,
 			The Unsaturation Mayer Bond Order. If avg is False and there are
 			more than one UMBO matching criteria, a list is returned.
 	"""
-	vals = get_MBO(halide, cation, solvent, avg=avg, num_solvents=num_solvents, route_lvls=route_lvls, criteria=criteria)
+	vals = get_MBO(halide, cation, solvent, ion=ion, avg=avg, num_solvents=num_solvents, route_lvls=route_lvls, criteria=criteria)
 	umbos = offset - vals
 	return umbos

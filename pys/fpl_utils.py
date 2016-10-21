@@ -33,8 +33,8 @@ def get_xyz_elems(run_name):
 
 	return elements_by_index
 
-def generate_lead_halide(halide):
-	PbX = structures.Molecule([structures.Atom("Pb",0,0,0)])
+def generate_lead_halide(halide, ion="Pb"):
+	PbX = structures.Molecule([structures.Atom(ion,0,0,0)])
 	if type(halide) is str:
 		halide = [halide, halide, halide]
 	vdw = lambda y: PERIODIC_TABLE[units.elem_s2i(y)]['vdw_r']
@@ -45,13 +45,10 @@ def generate_lead_halide(halide):
 		PbX.rotate(R)
 	return PbX
 
-def generate_lead_halide_cation(halide, cation, run_opt=True):
+def generate_lead_halide_cation(halide, cation, ion="Pb", run_opt=True):
 	cml_path = fpl_constants.cml_dir
 	# Check if system exists
-	if type(halide) is str:
-		fname = "Pb"+halide+"3"+cation
-	else:
-		fname = "Pb"+"".join([x + str(halide.count(x)) if halide.count(x) > 1 else x for x in geometry.reduce_list(halide)])+cation
+	fname = reduce_to_name(ion, halide, cation)
 	if not cml_path.endswith("/"):
 		cml_path += "/"
 
@@ -62,7 +59,7 @@ def generate_lead_halide_cation(halide, cation, run_opt=True):
 
 	vdw = lambda y: PERIODIC_TABLE[units.elem_s2i(y)]['vdw_r']
 	# Get the PbX3 system
-	PbX3 = generate_lead_halide(halide)
+	PbX3 = generate_lead_halide(halide, ion=ion)
 	# Get the cation from the cml file
 	atoms, bonds, _, _ = files.read_cml(cml_path + cation + ".cml", test_charges=False, allow_errors=True)
 	system = structures.Molecule(atoms)
@@ -90,14 +87,14 @@ def generate_lead_halide_cation(halide, cation, run_opt=True):
 	system.translate([0,0,z_offset])
 
 	# Add to the PbX3 system with an offset of vdw(Pb)
-	system.translate([0,0,vdw("Pb")])
+	system.translate([0,0,vdw(ion)])
 	system.atoms += PbX3.atoms
 	
 	# Run a geometry optimization of this system
 	if run_opt:
-		PbXY = orca.job(fname,"! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv LooseOpt",
+		PbXY = orca.job(fname,fpl_constants.default_routes[0],
 			atoms=system.atoms,
-			extra_section="%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end",
+			extra_section=fpl_constants.extra_section,
 			queue="batch",
 			procs=2)
 		PbXY.wait()
@@ -107,10 +104,20 @@ def generate_lead_halide_cation(halide, cation, run_opt=True):
 
 	# Set OPLS types
 	for a in system.atoms:
-		if a.element in ["Pb","Cl","Br","I"]:
+		if a.element in [ion,"Cl","Br","I"]:
 			a.type = fpl_constants.atom_types[a.element]
 			a.type_index = a.type["index"]
 
 	# Write cml file so we don't re-generate, and return system
 	files.write_cml(system, bonds=bonds, name=cml_path+fname+".cml")
 	return system
+
+def reduce_to_name(i,h,c):
+	if type(h) is str:
+		fname = i+h+"3"+c
+	else:
+		hh = [x + str(h.count(x)) if h.count(x) > 1 else x for x in geometry.reduce_list(h)]
+		hh.sort()
+		hh = "".join(hh)
+		fname = i+hh+c
+	return fname

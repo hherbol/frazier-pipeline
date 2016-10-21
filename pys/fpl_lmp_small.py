@@ -26,7 +26,7 @@ def callback_grab_final(fpl_obj):
 	xyz = fpl_obj.data[-1]
 	## Convert Ba to Pb (we had used Ba in LAMMPs, but in reality we want Pb)
 	for a,b in zip(fpl_obj.system.atoms,xyz[-1]):
-		a.x, a.y, a.z, a.element = b.x, b.y, b.z, elements_by_index[b.element] if elements_by_index[b.element] != "Ba" else "Pb"
+		a.x, a.y, a.z, a.element = b.x, b.y, b.z, elements_by_index[b.element] if elements_by_index[b.element] != "Ba" else fpl_obj.ion
 		if any( [np.isnan(x) for x in (a.x,a.y,a.z)] ):
 			raise Exception("Error on small lammps callback.")
 

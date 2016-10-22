@@ -104,13 +104,12 @@ group immobile subtract all mobile
 
 $IMOBILE$
 
-#minimize 1.0e-4 1.0e-6 100 1000
+velocity mobile create 300.0 $SEED$ rot yes dist gaussian
+velocity immobile set 0.0 0.0 0.0
+
 fix relax mobile nve/limit 0.1
 run 10000
 unfix relax
-
-velocity mobile create 300.0 $SEED$ rot yes dist gaussian
-velocity immobile set 0.0 0.0 0.0
 
 fix motion mobile npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0
 

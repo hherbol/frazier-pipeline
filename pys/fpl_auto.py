@@ -375,7 +375,7 @@ def get_MBO(halide, cation, solvent,
 	#     1. Verify it has succeeded
 	#     2. Verify it is the same simulation in theory
 	#     3. Read in this as the end state and don't re-run it (unless flag)
-	task = lmp_large_job(fpl_obj, run_name + "_large_lammps")
+	task = lmp_large_job(fpl_obj, run_name + "_large_lammps_"+str(route_lvls[0]))
 	fpl_obj.add_task(task)
 
 	## Task 2 - Small Lammps Simulation
@@ -388,7 +388,7 @@ def get_MBO(halide, cation, solvent,
 	#     1. Verify it has succeeded
 	#     2. Verify it is the same simulation in theory
 	#     3. Read in this as the end state and don't re-run it (unless flag)
-	task = lmp_small_job(fpl_obj, run_name + "_small_lammps")
+	task = lmp_small_job(fpl_obj, run_name + "_small_lammps_"+str(route_lvls[0]))
 	fpl_obj.add_task(task)
 
 	## Task 3 - Orca Simulation

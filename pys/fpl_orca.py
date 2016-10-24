@@ -18,8 +18,10 @@ def job(fpl_obj, task_name):
 		#raise Exception("Currently all 0, 1, and 2 are the same (lvl 0, lowest)")
 
 	if fpl_obj.implicit_solvent:
-		fpl_obj.route += " COSMO"
-		fpl_obj.extra_section = "%cosmo SMD true epsilon " + str(fpl_constants.solvent[fpl_obj.solvent_name]["dielectric"]) + " end " + fpl_obj.extra_section
+		if "COSMO" not in fpl_obj.route:
+			fpl_obj.route += " COSMO"
+		if "cosmo SMD true epsilon" not in fpl_obj.extra_section:
+			fpl_obj.extra_section = "%cosmo SMD true epsilon " + str(fpl_constants.solvent[fpl_obj.solvent_name]["dielectric"]) + " end " + fpl_obj.extra_section
 
 	if fpl_obj.debug:
 		return None

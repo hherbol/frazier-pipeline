@@ -111,7 +111,7 @@ fix relax mobile nve/limit 0.1
 run 10000
 unfix relax
 
-fix motion mobile npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0
+fix motion mobile npt temp 300.0 300.0 100.0 iso 1.0 1.0 1000.0
 
 timestep 1.0
 run $RUN_LEN$

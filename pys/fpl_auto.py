@@ -364,7 +364,12 @@ def get_MBO(halide, cation, solvent,
 	fpl_obj.procs=1
 	fpl_obj.lmp_run_len=10000
 	fpl_obj.trj_file=None
+	fpl_obj.R_cutoff=3.0
 	### ADD TASK
+	# TODO - If this simulation already exists, do the following:
+	#     1. Verify it has succeeded
+	#     2. Verify it is the same simulation in theory
+	#     3. Read in this as the end state and don't re-run it (unless flag)
 	task = lmp_large_job(fpl_obj, run_name + "_large_lammps")
 	fpl_obj.add_task(task)
 
@@ -374,6 +379,10 @@ def get_MBO(halide, cation, solvent,
 	fpl_obj.procs=1
 	fpl_obj.lmp_run_len=10000
 	### ADD TASK
+	# TODO - If this simulation already exists, do the following:
+	#     1. Verify it has succeeded
+	#     2. Verify it is the same simulation in theory
+	#     3. Read in this as the end state and don't re-run it (unless flag)
 	task = lmp_small_job(fpl_obj, run_name + "_small_lammps")
 	fpl_obj.add_task(task)
 
@@ -383,7 +392,11 @@ def get_MBO(halide, cation, solvent,
 	fpl_obj.procs=4
 	fpl_obj.route = route_lvls[0]
 	### ADD TASK
-	task = orca_job(fpl_obj, run_name + "_orca")
+	# TODO - If this simulation already exists, do the following:
+	#     1. Verify it has succeeded
+	#     2. Verify it is the same simulation in theory
+	#     3. Read in this as the end state and don't re-run it (unless flag)
+	task = orca_job(fpl_obj, run_name + "_orca_"+str(route_lvls[0]))
 	fpl_obj.add_task(task)
 	################################################################################
 

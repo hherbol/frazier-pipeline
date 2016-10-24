@@ -43,6 +43,7 @@ fpl_job.start(on_queue=None)
 		self.solute = solute
 		self.solvent_name = solvent_name
 		self.num_solvents = 10
+		self.R_cutoff = 3.0
 
 		# Paths are here
 		self.HOME_DIR = os.getcwd()+"/"

@@ -35,40 +35,39 @@ def callback_strip_solvents(fpl_obj):
 			return None
 
 	## Grab only molecules we're interested in.  Here we find relative distances to the solute in question
-	molecules_in_cluster = []
-	m_solute = None
 	if fpl_obj.solute:
-		m_solute = structures.Molecule(fpl_constants.cml_dir+fpl_obj.solute, test_charges=False, allow_errors=True)
-		diffs = []
-		for molec in system.molecules:
-			# NOTE, ORDER MATTERS! As procrustes WILL change the atomic positions of the
-			# second list of atoms to best match the first.  We don't care if m_solute
-			# changes, but if everything else overlaps with m_solute then we have an issue.
-			chk = [molec.atoms, m_solute.atoms]
-			if len(chk[0]) != len(chk[1]): continue
-			#chk = [copy.deepcopy(molec.atoms), copy.deepcopy(m_solute.atoms)]
-			geometry.procrustes(chk)
-			diffs.append(geometry.motion_per_frame(chk)[-1])
-		index_of_solute = diffs.index(min(diffs))
+		molecules_in_cluster = []
 
-		m_solute = system.molecules[index_of_solute]
-		#new_center = m_solute.get_center_of_geometry(skip_H=True)
-		index_of_ion = [i for i,a in enumerate(m_solute.atoms) if a.element == fpl_obj.ion][0]
-		ion = m_solute.atoms[index_of_ion]
-		new_center = [ion.x, ion.y, ion.z]
+		# Generate a list of all ion atoms
+		ion_list = [a for m in system.molecules for a in m.atoms if a.element == fpl_obj.ion]
+		all_solutes = [m for m in system.molecules if fpl_obj.ion in [a.element for a in m.atoms]]
+		if len(ion_list) == 0: raise Exception("Could not find %s!" % fpl_obj.ion)
 
-		for m in system.molecules: # Get list of molecules and distances from solute molecule
-			R = sum([(a-b)**2 for a,b in zip(new_center,m.get_center_of_geometry(skip_H=True))])/3.0
-			molecules_in_cluster.append( (R,m) )
-	else:
-		origin = structures.Atom('X',0.0,0.0,0.0)
+		# Get distance between every ion and oxygen per molecule, saving molecule and min r
 		for m in system.molecules:
-			R = geometry.dist(origin,m.atoms[0])
-			molecules_in_cluster.append( (R,m) )
+			# Calculate the distance from the oxygen atom to all pb atoms.
+			oxypos = [a for a in m.atoms if a.type.element in [8,"O"]]
+			if oxypos == []: continue
 
-	## Grab closest x solvent molecules.  In the case of solutes existing, we have x+1 in total
-	molecules_in_cluster.sort()
-	molecules_in_cluster = [m[1] for m in molecules_in_cluster[ : (fpl_obj.num_solvents+1 if fpl_obj.solute else fpl_obj.num_solvents) ]] 
+			# Get a list of the closest oxygen of molecule m to the ions
+			r_min = min([geometry.dist(i,o) for i in ion_list for o in oxypos])
+			
+			# If close enough, save
+			if r_min < fpl_obj.R_cutoff:
+				molecules_in_cluster.append((m, r_min))
+	else:
+		all_solutes = []
+		origin = structures.Atom('X',0.0,0.0,0.0)
+		molecules_in_cluster = [(m, geometry.dist(origin,m.atoms[0])) for m in system.molecules]
+
+	# Now, if we want only N solvents, grab closest N
+	molecules_in_cluster = sorted(molecules_in_cluster, key=lambda x: x[1])
+	if fpl_obj.num_solvents is not None:
+		molecules_in_cluster = all_solutes + [m[0] for m in molecules_in_cluster[:fpl_obj.num_solvents]]
+	else:
+		molecules_in_cluster = all_solutes + [m[0] for m in molecules_in_cluster]
+
+	# Set indices
 	for j,m in enumerate(molecules_in_cluster):
 		for i,a in enumerate(m.atoms):
 			a.index = i+1

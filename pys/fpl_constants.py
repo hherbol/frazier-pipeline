@@ -36,7 +36,10 @@ default_routes = ["! OPT B97-D3 SV GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv Loo
          "! OPT PW6B95 def2-TZVP GCP(DFT/TZ) ECP{def2-TZVP} Grid7 SlowConv"]
 
 #extra_section = "%basis aux auto NewECP Pb \"def2-SD\" \"def2-TZVP\" end NewECP Sn \"def2-SD\" \"def2-TZVP\" end NewECP Cs \"def2-SD\" \"def2-TZVP\" end NewGTO S \"def2-TZVP\" end end"
-extra_section = ""
+extra_section = '''%geom
+    MaxIter 500
+    end
+'''
 
 cml_dir="/fs/europa/g_pc/fpl/cml/"
 

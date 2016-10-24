@@ -314,8 +314,9 @@ def get_MBO(halide, cation, solvent,
 			The number of solvents to model explicitly (implicit is always on
 			in background).
 
-		route_lvls: *list, int, optional*
-			The level of theory to use.
+		route_lvls: *int or list, int, optional*
+			The level of theory to use.  If an integer is passed, all levels
+			are assumed the same.
 
 		avg: *bool, optional*
 			Whether to average together all UMBO's that match the given
@@ -334,6 +335,10 @@ def get_MBO(halide, cation, solvent,
 	"""	
 	# Get string for solute
 	solute = fpl_utils.reduce_to_name(ion, halide, cation)
+
+	# Expand route lvls if needed
+	if type(route_lvls) is int:
+		route_lvls = [route_lvls for i in range(4)]
 
 	# Get molecules for solute and solvent
 	#M_solute = fpl_utils.generate_lead_halide_cation(halide, cation, ion=ion)

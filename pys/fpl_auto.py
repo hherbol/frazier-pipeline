@@ -337,7 +337,8 @@ def get_mbo_given_criteria(MBOs, criteria, avg):
 					vals.append(mbo[1])
 
 	if avg:
-		vals = sum(vals)/float(len(vals))
+		if type(vals) is list:
+			vals = sum(vals)/float(len(vals))
 
 	return vals
 
@@ -528,7 +529,7 @@ mbo = fpl_auto.get_MBO("$HALIDE", "$CATION", "$SOLVENT",
 	fpl_obj.start(save=False)
 
 	# Read in the final results
-	return _get_mbo_given_criteria(fpl_obj.data.MBO, criteria, avg)
+	return get_mbo_given_criteria(fpl_obj.data.MBO, criteria, avg)
 
 def get_UMBO(halide, cation , solvent,
 			ion="Pb",

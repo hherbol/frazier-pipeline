@@ -288,7 +288,7 @@ print e_solv
 def get_MBO(halide, cation, solvent,
 			ion="Pb",
 			num_solvents = 1,
-			route_lvls = [0,0,0,0],
+			route_lvls = 1,
 			avg=True,
 			criteria=[["O","C"],["O","N"],["O","S"]]):
 	"""
@@ -437,7 +437,7 @@ def get_UMBO(halide, cation , solvent,
 			ion="Pb",
 			offset=2.0, 
 			num_solvents = 1,
-			route_lvls = [0,0,0,0],
+			route_lvls = 1,
 			avg=True, criteria=[["O","C"],["O","N"],["O","S"]]):
 	"""
 	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order

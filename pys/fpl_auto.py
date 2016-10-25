@@ -352,6 +352,19 @@ def get_MBO(halide, cation, solvent,
 			you want the UMBO for.  By default, it is every bond with an
 			oxygen atom involved.
 
+		on_queue : *bool, optional*
+			Whether to run this simulation on the queue.
+
+		queue : *str, optional*
+			Which queue to run the simulation on.
+
+		nprocs : *int, optional*
+			How many processors to use.
+
+		xhost : *list, str or str, optional*
+			A list of processors, or a single processor for which to submit
+			the simulations (on the queue).
+
 	**Return**
 
 		MBO: *list, float, or float*
@@ -538,6 +551,19 @@ def get_UMBO(halide, cation , solvent,
 			A list of lists, each list holding a list describing what bonds
 			you want the UMBO for.  By default, it is every bond with an
 			oxygen atom involved.
+			
+		on_queue : *bool, optional*
+			Whether to run this simulation on the queue.
+
+		queue : *str, optional*
+			Which queue to run the simulation on.
+
+		nprocs : *int, optional*
+			How many processors to use.
+
+		xhost : *list, str or str, optional*
+			A list of processors, or a single processor for which to submit
+			the simulations (on the queue).
 
 	**Return**
 

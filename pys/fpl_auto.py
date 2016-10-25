@@ -38,6 +38,38 @@ For a quick start guide, in theory the following will suffice:
 	# adsorbed onto a solute of PbCl3MA
 	umbo = fpl_auto.get_UMBO(h,c,s)
 
+Note, parallelization has also been implemented and can be utilized as 
+follows:
+
+.. code-block:: python
+
+	# Imports
+	import fpl_auto
+
+	# Variables
+	halide = "I"
+	cation = "MA"
+
+	# Loop through and generate "jobs"
+	running_jobs = []
+	for solvent in ["DMF","DMSO"]:
+		for ion in ["Pb","Sn"]:
+			for route_lvls in [1,2]:
+				running_jobs.append(fpl_auto.get_UMBO(halide,cation,solvent,ion=ion,route_lvls=route_lvls,on_queue=True))
+
+	# Wait for all jobs to finish
+	print("\nJobs have been submitted. Waiting for completion...")
+	for job in running_jobs:
+		job.wait()
+
+	# Read in output from each job
+	for job in running_jobs:
+		print("For job %s, the umbo is %lg" % (job.name, job.umbo()))
+
+Other features of the clancelot Job class apply here as well.  That is,
+you should also be able to poll if the job has finished using ".is_finished()"
+instead of hanging the way ".wait()" does.
+
 ------------
 
 """

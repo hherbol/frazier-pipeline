@@ -123,6 +123,41 @@ calculations.</p>
 <span class="n">umbo</span> <span class="o">=</span> <span class="n">fpl_auto</span><span class="o">.</span><span class="n">get_UMBO</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="n">s</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Note, parallelization has also been implemented and can be utilized as 
+follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Imports</span>
+<span class="kn">import</span> <span class="nn">fpl_auto</span>
+
+<span class="c1"># Variables</span>
+<span class="n">halide</span> <span class="o">=</span> <span class="s2">&quot;I&quot;</span>
+<span class="n">cation</span> <span class="o">=</span> <span class="s2">&quot;MA&quot;</span>
+
+<span class="c1"># Loop through and generate &quot;jobs&quot;</span>
+<span class="n">running_jobs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">solvent</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;DMF&quot;</span><span class="p">,</span><span class="s2">&quot;DMSO&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">ion</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Pb&quot;</span><span class="p">,</span><span class="s2">&quot;Sn&quot;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">route_lvls</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span>
+                        <span class="n">running_jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fpl_auto</span><span class="o">.</span><span class="n">get_UMBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span><span class="n">cation</span><span class="p">,</span><span class="n">solvent</span><span class="p">,</span><span class="n">ion</span><span class="o">=</span><span class="n">ion</span><span class="p">,</span><span class="n">route_lvls</span><span class="o">=</span><span class="n">route_lvls</span><span class="p">,</span><span class="n">on_queue</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+
+<span class="c1"># Wait for all jobs to finish</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Jobs have been submitted. Waiting for completion...&#8221;)</dt>
+<dd><dl class="first docutils">
+<dt>for job in running_jobs:</dt>
+<dd>job.wait()</dd>
+</dl>
+<p># Read in output from each job
+for job in running_jobs:</p>
+<blockquote class="last">
+<div>print(&#8220;For job %s, the umbo is %lg&#8221; % (job.name, job.umbo()))</div></blockquote>
+</dd>
+</dl>
+<p>Other features of the clancelot Job class apply here as well.  That is,
+you should also be able to poll if the job has finished using &#8221;.is_finished()&#8221;
+instead of hanging the way &#8221;.wait()&#8221; does.</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="fpl_auto.get_MBO">

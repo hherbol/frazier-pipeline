@@ -87,6 +87,38 @@
 <span class="sd">	# adsorbed onto a solute of PbCl3MA</span>
 <span class="sd">	umbo = fpl_auto.get_UMBO(h,c,s)</span>
 
+<span class="sd">Note, parallelization has also been implemented and can be utilized as </span>
+<span class="sd">follows:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">	# Imports</span>
+<span class="sd">	import fpl_auto</span>
+
+<span class="sd">	# Variables</span>
+<span class="sd">	halide = &quot;I&quot;</span>
+<span class="sd">	cation = &quot;MA&quot;</span>
+
+<span class="sd">	# Loop through and generate &quot;jobs&quot;</span>
+<span class="sd">	running_jobs = []</span>
+<span class="sd">	for solvent in [&quot;DMF&quot;,&quot;DMSO&quot;]:</span>
+<span class="sd">		for ion in [&quot;Pb&quot;,&quot;Sn&quot;]:</span>
+<span class="sd">			for route_lvls in [1,2]:</span>
+<span class="sd">				running_jobs.append(fpl_auto.get_UMBO(halide,cation,solvent,ion=ion,route_lvls=route_lvls,on_queue=True))</span>
+
+<span class="sd">	# Wait for all jobs to finish</span>
+<span class="sd">	print(&quot;\nJobs have been submitted. Waiting for completion...&quot;)</span>
+<span class="sd">	for job in running_jobs:</span>
+<span class="sd">		job.wait()</span>
+
+<span class="sd">	# Read in output from each job</span>
+<span class="sd">	for job in running_jobs:</span>
+<span class="sd">		print(&quot;For job %s, the umbo is %lg&quot; % (job.name, job.umbo()))</span>
+
+<span class="sd">Other features of the clancelot Job class apply here as well.  That is,</span>
+<span class="sd">you should also be able to poll if the job has finished using &quot;.is_finished()&quot;</span>
+<span class="sd">instead of hanging the way &quot;.wait()&quot; does.</span>
+
 <span class="sd">------------</span>
 
 <span class="sd">&quot;&quot;&quot;</span>

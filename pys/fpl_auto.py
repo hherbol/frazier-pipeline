@@ -336,6 +336,8 @@ def get_mbo_given_criteria(MBOs, criteria, avg):
 					# If so, store this mbo
 					vals.append(mbo[1])
 
+	if len(vals) == 0:
+		raise Exception("No MBOs were found that matched your given criteria. This could be either (a) your criteria are too strict or (b) the simulation failed.")
 	if avg:
 		vals = sum(vals)/float(len(vals))
 

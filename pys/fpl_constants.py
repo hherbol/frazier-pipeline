@@ -9,7 +9,10 @@ solvent = {"THTO":{"density":1.2, "dielectric":42.84},
            "DMF":{"density":0.95, "dielectric":36.7},
            "DMSO":{"density":1.0, "dielectric":46.7},
            "NMP":{"density":1.1, "dielectric":32.3},
-           "ACETONE":{"density":0.78, "dielectric":20.7}}
+           "ACETONE":{"density":0.78, "dielectric":20.7},
+           "METHACROLEIN":{"density":0.85, "dielectric":10.9},
+           "NITROMETHANE":{"density":1.14, "dielectric":35.9}}
+
 for key in solvent.keys():
   solvent[key.lower()] = solvent[key]
 

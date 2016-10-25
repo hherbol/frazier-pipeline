@@ -126,7 +126,7 @@ calculations.</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="fpl_auto.get_MBO">
-<code class="descclassname">fpl_auto.</code><code class="descname">get_MBO</code><span class="sig-paren">(</span><em>halide, cation, solvent, ion='Pb', num_solvents=1, route_lvls=[0, 0, 0, 0], avg=True, criteria=[['O', 'C'], ['O', 'N'], ['O', 'S']]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_MBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_MBO" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">fpl_auto.</code><code class="descname">get_MBO</code><span class="sig-paren">(</span><em>halide, cation, solvent, ion='Pb', num_solvents=1, route_lvls=1, avg=True, criteria=[['O', 'C'], ['O', 'N'], ['O', 'S']], on_queue=False, queue='batch', nprocs=1, xhost=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_MBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_MBO" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the mayer bond order.  The Mayer Bond Order (see <a class="reference internal" href="#fpl_auto.get_UMBO" title="fpl_auto.get_UMBO"><code class="xref py py-func docutils literal"><span class="pre">get_UMBO()</span></code></a>) for more
 details.</p>
 <p><strong>Parameters</strong></p>
@@ -154,6 +154,15 @@ criteria.</dd>
 <dd>A list of lists, each list holding a list describing what bonds
 you want the UMBO for.  By default, it is every bond with an
 oxygen atom involved.</dd>
+<dt>on_queue</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><em>bool, optional</em></span><dd>Whether to run this simulation on the queue.</dd>
+<dt>queue</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><em>str, optional</em></span><dd>Which queue to run the simulation on.</dd>
+<dt>nprocs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><em>int, optional</em></span><dd>How many processors to use.</dd>
+<dt>xhost</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><em>list, str or str, optional</em></span><dd>A list of processors, or a single processor for which to submit
+the simulations (on the queue).</dd>
 </dl>
 </div></blockquote>
 <p><strong>Return</strong></p>
@@ -168,7 +177,7 @@ MBO matching criteria, a list is returned.</dd>
 
 <dl class="function">
 <dt id="fpl_auto.get_UMBO">
-<code class="descclassname">fpl_auto.</code><code class="descname">get_UMBO</code><span class="sig-paren">(</span><em>halide, cation, solvent, ion='Pb', offset=2.0, num_solvents=1, route_lvls=[0, 0, 0, 0], avg=True, criteria=[['O', 'C'], ['O', 'N'], ['O', 'S']]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_UMBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_UMBO" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">fpl_auto.</code><code class="descname">get_UMBO</code><span class="sig-paren">(</span><em>halide, cation, solvent, ion='Pb', offset=2.0, num_solvents=1, route_lvls=1, avg=True, criteria=[['O', 'C'], ['O', 'N'], ['O', 'S']], on_queue=False, queue='batch', nprocs=1, xhost=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fpl_auto.html#get_UMBO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fpl_auto.get_UMBO" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
 (MBO) is well described <a class="reference external" href="http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract">here</a>.  In short, it is a numerical representation
 of the probability of how many electrons partake in a bond.  For instance,
@@ -206,6 +215,15 @@ criteria.</dd>
 <dd>A list of lists, each list holding a list describing what bonds
 you want the UMBO for.  By default, it is every bond with an
 oxygen atom involved.</dd>
+<dt>on_queue</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><em>bool, optional</em></span><dd>Whether to run this simulation on the queue.</dd>
+<dt>queue</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><em>str, optional</em></span><dd>Which queue to run the simulation on.</dd>
+<dt>nprocs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><em>int, optional</em></span><dd>How many processors to use.</dd>
+<dt>xhost</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"><em>list, str or str, optional</em></span><dd>A list of processors, or a single processor for which to submit
+the simulations (on the queue).</dd>
 </dl>
 </div></blockquote>
 <p><strong>Return</strong></p>

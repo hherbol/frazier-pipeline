@@ -334,12 +334,37 @@
 	<span class="k">return</span> <span class="n">H_solv</span>
 
 
+<span class="k">def</span> <span class="nf">get_mbo_given_criteria</span><span class="p">(</span><span class="n">MBOs</span><span class="p">,</span> <span class="n">criteria</span><span class="p">,</span> <span class="n">avg</span><span class="p">):</span>
+	<span class="c1"># Find all MBOs for Oxygen and return them</span>
+	<span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="c1"># Loop through all mbos</span>
+	<span class="k">for</span> <span class="n">mbo</span> <span class="ow">in</span> <span class="n">MBOs</span><span class="p">:</span>
+		<span class="c1"># Loop through criteria</span>
+		<span class="k">for</span> <span class="n">crit</span> <span class="ow">in</span> <span class="n">criteria</span><span class="p">:</span>
+			<span class="c1"># Get a list holding elements in MBO bond as c0,c1</span>
+			<span class="n">chk</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">element</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mbo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+			<span class="c1"># If wildcard for c0, or if c0 is in mbo bond</span>
+			<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span> <span class="ow">or</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
+				<span class="c1"># Remove c0 from mbo bond check (if it&#39;s there)</span>
+				<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
+					<span class="k">del</span> <span class="n">chk</span><span class="p">[</span><span class="n">chk</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+				<span class="c1"># And check if c1 is wildcard, or in mbo bond</span>
+				<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span> <span class="ow">or</span> <span class="n">crit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
+					<span class="c1"># If so, store this mbo</span>
+					<span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mbo</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+	<span class="k">if</span> <span class="n">avg</span><span class="p">:</span>
+		<span class="n">vals</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+
+	<span class="k">return</span> <span class="n">vals</span>
+
 <div class="viewcode-block" id="get_MBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_MBO">[docs]</a><span class="k">def</span> <span class="nf">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span>
 			<span class="n">ion</span><span class="o">=</span><span class="s2">&quot;Pb&quot;</span><span class="p">,</span>
 			<span class="n">num_solvents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-			<span class="n">route_lvls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+			<span class="n">route_lvls</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 			<span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-			<span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;N&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;S&quot;</span><span class="p">]]):</span>
+			<span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;N&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;S&quot;</span><span class="p">]],</span>
+			<span class="n">on_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xhost</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more</span>
 <span class="sd">	details.</span>
@@ -376,12 +401,74 @@
 <span class="sd">			you want the UMBO for.  By default, it is every bond with an</span>
 <span class="sd">			oxygen atom involved.</span>
 
+<span class="sd">		on_queue : *bool, optional*</span>
+<span class="sd">			Whether to run this simulation on the queue.</span>
+
+<span class="sd">		queue : *str, optional*</span>
+<span class="sd">			Which queue to run the simulation on.</span>
+
+<span class="sd">		nprocs : *int, optional*</span>
+<span class="sd">			How many processors to use.</span>
+
+<span class="sd">		xhost : *list, str or str, optional*</span>
+<span class="sd">			A list of processors, or a single processor for which to submit</span>
+<span class="sd">			the simulations (on the queue).</span>
+
 <span class="sd">	**Return**</span>
 
 <span class="sd">		MBO: *list, float, or float*</span>
 <span class="sd">			The Mayer Bond Order. If avg is False and there are more than one</span>
 <span class="sd">			MBO matching criteria, a list is returned.</span>
 <span class="sd">	&quot;&quot;&quot;</span>	
+
+	<span class="k">if</span> <span class="n">on_queue</span><span class="p">:</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">import fpl_auto</span>
+<span class="s2">mbo = fpl_auto.get_MBO(&quot;$HALIDE&quot;, &quot;$CATION&quot;, &quot;$SOLVENT&quot;,</span>
+<span class="s2">			ion=&quot;$ION&quot;,</span>
+<span class="s2">			num_solvents = $NUM_SOLVENTS,</span>
+<span class="s2">			route_lvls = $ROUTE_LVLS,</span>
+<span class="s2">			avg=$AVG,</span>
+<span class="s2">			criteria=$CRITERIA)</span>
+<span class="s2">&quot;&quot;&quot;</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$HALIDE&quot;</span><span class="p">,</span><span class="n">halide</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$CATION&quot;</span><span class="p">,</span><span class="n">cation</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$SOLVENT&quot;</span><span class="p">,</span><span class="n">solvent</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$ION&quot;</span><span class="p">,</span><span class="n">ion</span><span class="p">)</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$NUM_SOLVENTS&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">num_solvents</span><span class="p">))</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$ROUTE_LVLS&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">route_lvls</span><span class="p">))</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$AVG&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">avg</span><span class="p">))</span>
+		<span class="n">pysub_str</span> <span class="o">=</span> <span class="n">pysub_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$CRITERIA&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">criteria</span><span class="p">))</span>
+
+		<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">route_lvls</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+			<span class="n">r</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">route_lvls</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">r</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">route_lvls</span><span class="p">)</span>
+		<span class="n">job_name</span> <span class="o">=</span> <span class="n">fpl_utils</span><span class="o">.</span><span class="n">reduce_to_name</span><span class="p">(</span><span class="n">ion</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">solvent</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">r</span> <span class="o">+</span> <span class="s2">&quot;.py&quot;</span>
+		<span class="n">fptr</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">job_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+		<span class="n">fptr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pysub_str</span><span class="p">)</span>
+		<span class="n">fptr</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+		<span class="n">running_job</span> <span class="o">=</span> <span class="n">jobs</span><span class="o">.</span><span class="n">pysub</span><span class="p">(</span><span class="n">job_name</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="n">nprocs</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">,</span> <span class="n">xhost</span><span class="o">=</span><span class="n">xhost</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">remove_sub_script</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">def</span> <span class="nf">mbo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;N&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;S&quot;</span><span class="p">]],</span> <span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_finished</span><span class="p">():</span>
+				<span class="k">return</span> <span class="kc">None</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="kn">import</span> <span class="nn">orca</span>
+				<span class="kn">import</span> <span class="nn">fpl_auto</span>
+				<span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+				<span class="n">name</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s2">&quot;orca&quot;</span><span class="p">)</span>
+				<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+				<span class="n">data</span> <span class="o">=</span> <span class="n">orca</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">converged</span><span class="p">:</span>
+					<span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">mbo</span> <span class="o">=</span> <span class="n">fpl_auto</span><span class="o">.</span><span class="n">get_mbo_given_criteria</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">MBO</span><span class="p">,</span> <span class="n">criteria</span><span class="p">,</span> <span class="n">avg</span><span class="p">)</span>
+					<span class="k">return</span> <span class="n">mbo</span>
+		<span class="n">running_job</span><span class="o">.</span><span class="n">mbo</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">(</span> <span class="n">mbo</span><span class="p">,</span> <span class="n">running_job</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">running_job</span>
+
+
 	<span class="c1"># Get string for solute</span>
 	<span class="n">solute</span> <span class="o">=</span> <span class="n">fpl_utils</span><span class="o">.</span><span class="n">reduce_to_name</span><span class="p">(</span><span class="n">ion</span><span class="p">,</span> <span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">)</span>
 
@@ -424,7 +511,7 @@
 	<span class="c1">#     1. Verify it has succeeded</span>
 	<span class="c1">#     2. Verify it is the same simulation in theory</span>
 	<span class="c1">#     3. Read in this as the end state and don&#39;t re-run it (unless flag)</span>
-	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_large_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_large_lammps&quot;</span><span class="p">)</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_large_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_large_lammps_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">route_lvls</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 
 	<span class="c1">## Task 2 - Small Lammps Simulation</span>
@@ -437,7 +524,7 @@
 	<span class="c1">#     1. Verify it has succeeded</span>
 	<span class="c1">#     2. Verify it is the same simulation in theory</span>
 	<span class="c1">#     3. Read in this as the end state and don&#39;t re-run it (unless flag)</span>
-	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_small_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_small_lammps&quot;</span><span class="p">)</span>
+	<span class="n">task</span> <span class="o">=</span> <span class="n">lmp_small_job</span><span class="p">(</span><span class="n">fpl_obj</span><span class="p">,</span> <span class="n">run_name</span> <span class="o">+</span> <span class="s2">&quot;_small_lammps_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">route_lvls</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
 
 	<span class="c1">## Task 3 - Orca Simulation</span>
@@ -458,36 +545,15 @@
 	<span class="n">fpl_obj</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 	<span class="c1"># Read in the final results</span>
-	<span class="n">MBOs</span> <span class="o">=</span> <span class="n">fpl_obj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">MBO</span>
-	<span class="c1"># Find all MBOs for Oxygen and return them</span>
-	<span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
-	<span class="c1"># Loop through all mbos</span>
-	<span class="k">for</span> <span class="n">mbo</span> <span class="ow">in</span> <span class="n">MBOs</span><span class="p">:</span>
-		<span class="c1"># Loop through criteria</span>
-		<span class="k">for</span> <span class="n">crit</span> <span class="ow">in</span> <span class="n">criteria</span><span class="p">:</span>
-			<span class="c1"># Get a list holding elements in MBO bond as c0,c1</span>
-			<span class="n">chk</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">element</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mbo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-			<span class="c1"># If wildcard for c0, or if c0 is in mbo bond</span>
-			<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span> <span class="ow">or</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
-				<span class="c1"># Remove c0 from mbo bond check (if it&#39;s there)</span>
-				<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
-					<span class="k">del</span> <span class="n">chk</span><span class="p">[</span><span class="n">chk</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">crit</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
-				<span class="c1"># And check if c1 is wildcard, or in mbo bond</span>
-				<span class="k">if</span> <span class="n">crit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span> <span class="ow">or</span> <span class="n">crit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">chk</span><span class="p">:</span>
-					<span class="c1"># If so, store this mbo</span>
-					<span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mbo</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
-	<span class="k">if</span> <span class="n">avg</span><span class="p">:</span>
-		<span class="n">vals</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
-
-	<span class="k">return</span> <span class="n">vals</span></div>
+	<span class="k">return</span> <span class="n">_get_mbo_given_criteria</span><span class="p">(</span><span class="n">fpl_obj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">MBO</span><span class="p">,</span> <span class="n">criteria</span><span class="p">,</span> <span class="n">avg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="get_UMBO"><a class="viewcode-back" href="../frazier-pipeline.html#fpl_auto.get_UMBO">[docs]</a><span class="k">def</span> <span class="nf">get_UMBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span> <span class="p">,</span> <span class="n">solvent</span><span class="p">,</span>
 			<span class="n">ion</span><span class="o">=</span><span class="s2">&quot;Pb&quot;</span><span class="p">,</span>
 			<span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> 
 			<span class="n">num_solvents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-			<span class="n">route_lvls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
-			<span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;N&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;S&quot;</span><span class="p">]]):</span>
+			<span class="n">route_lvls</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+			<span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;N&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;S&quot;</span><span class="p">]],</span>
+			<span class="n">on_queue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="s2">&quot;batch&quot;</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xhost</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order</span>
 <span class="sd">	(MBO) is well described `here &lt;http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract&gt;`_.  In short, it is a numerical representation</span>
@@ -534,6 +600,19 @@
 <span class="sd">			A list of lists, each list holding a list describing what bonds</span>
 <span class="sd">			you want the UMBO for.  By default, it is every bond with an</span>
 <span class="sd">			oxygen atom involved.</span>
+<span class="sd">			</span>
+<span class="sd">		on_queue : *bool, optional*</span>
+<span class="sd">			Whether to run this simulation on the queue.</span>
+
+<span class="sd">		queue : *str, optional*</span>
+<span class="sd">			Which queue to run the simulation on.</span>
+
+<span class="sd">		nprocs : *int, optional*</span>
+<span class="sd">			How many processors to use.</span>
+
+<span class="sd">		xhost : *list, str or str, optional*</span>
+<span class="sd">			A list of processors, or a single processor for which to submit</span>
+<span class="sd">			the simulations (on the queue).</span>
 
 <span class="sd">	**Return**</span>
 
@@ -541,9 +620,36 @@
 <span class="sd">			The Unsaturation Mayer Bond Order. If avg is False and there are</span>
 <span class="sd">			more than one UMBO matching criteria, a list is returned.</span>
 <span class="sd">	&quot;&quot;&quot;</span>
-	<span class="n">vals</span> <span class="o">=</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span> <span class="n">ion</span><span class="o">=</span><span class="n">ion</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="n">avg</span><span class="p">,</span> <span class="n">num_solvents</span><span class="o">=</span><span class="n">num_solvents</span><span class="p">,</span> <span class="n">route_lvls</span><span class="o">=</span><span class="n">route_lvls</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">)</span>
-	<span class="n">umbos</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">vals</span>
-	<span class="k">return</span> <span class="n">umbos</span></div>
+	<span class="n">vals</span> <span class="o">=</span> <span class="n">get_MBO</span><span class="p">(</span><span class="n">halide</span><span class="p">,</span> <span class="n">cation</span><span class="p">,</span> <span class="n">solvent</span><span class="p">,</span>
+					<span class="n">ion</span><span class="o">=</span><span class="n">ion</span><span class="p">,</span>
+					<span class="n">avg</span><span class="o">=</span><span class="n">avg</span><span class="p">,</span>
+					<span class="n">num_solvents</span><span class="o">=</span><span class="n">num_solvents</span><span class="p">,</span>
+					<span class="n">route_lvls</span><span class="o">=</span><span class="n">route_lvls</span><span class="p">,</span>
+					<span class="n">criteria</span><span class="o">=</span><span class="n">criteria</span><span class="p">,</span>
+					<span class="n">on_queue</span><span class="o">=</span><span class="n">on_queue</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="n">nprocs</span><span class="p">,</span> <span class="n">xhost</span><span class="o">=</span><span class="n">xhost</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">on_queue</span><span class="p">:</span>
+		<span class="k">def</span> <span class="nf">umbo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">criteria</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;N&quot;</span><span class="p">],[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span><span class="s2">&quot;S&quot;</span><span class="p">]],</span> <span class="n">avg</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_finished</span><span class="p">():</span>
+				<span class="k">return</span> <span class="kc">None</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="kn">import</span> <span class="nn">orca</span>
+				<span class="kn">import</span> <span class="nn">fpl_auto</span>
+				<span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+				<span class="n">name</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s2">&quot;orca&quot;</span><span class="p">)</span>
+				<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+				<span class="n">data</span> <span class="o">=</span> <span class="n">orca</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">converged</span><span class="p">:</span>
+					<span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">mbo</span> <span class="o">=</span> <span class="n">fpl_auto</span><span class="o">.</span><span class="n">get_mbo_given_criteria</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">MBO</span><span class="p">,</span> <span class="n">criteria</span><span class="p">,</span> <span class="n">avg</span><span class="p">)</span>
+					<span class="k">return</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">mbo</span>
+		<span class="n">vals</span><span class="o">.</span><span class="n">umbo</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">(</span> <span class="n">umbo</span><span class="p">,</span> <span class="n">vals</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">vals</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">umbos</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">vals</span>
+		<span class="k">return</span> <span class="n">umbos</span></div>
 </pre></div>
 
           </div>

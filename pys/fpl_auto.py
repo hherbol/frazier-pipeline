@@ -58,7 +58,7 @@ follows:
 				running_jobs.append(fpl_auto.get_UMBO(halide,cation,solvent,ion=ion,route_lvls=route_lvls,on_queue=True))
 
 	# Wait for all jobs to finish
-	print("\nJobs have been submitted. Waiting for completion...")
+	print("Jobs have been submitted. Waiting for completion...")
 	for job in running_jobs:
 		job.wait()
 

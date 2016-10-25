@@ -285,12 +285,37 @@ print e_solv
 	return H_solv
 
 
+def get_mbo_given_criteria(MBOs, criteria, avg):
+	# Find all MBOs for Oxygen and return them
+	vals = []
+	# Loop through all mbos
+	for mbo in MBOs:
+		# Loop through criteria
+		for crit in criteria:
+			# Get a list holding elements in MBO bond as c0,c1
+			chk = [a.element for a in mbo[0]]
+			# If wildcard for c0, or if c0 is in mbo bond
+			if crit[0] == "*" or crit[0] in chk:
+				# Remove c0 from mbo bond check (if it's there)
+				if crit[0] in chk:
+					del chk[chk.index(crit[0])]
+				# And check if c1 is wildcard, or in mbo bond
+				if crit[1] == "*" or crit[1] in chk:
+					# If so, store this mbo
+					vals.append(mbo[1])
+
+	if avg:
+		vals = sum(vals)/float(len(vals))
+
+	return vals
+
 def get_MBO(halide, cation, solvent,
 			ion="Pb",
 			num_solvents = 1,
 			route_lvls = 1,
 			avg=True,
-			criteria=[["O","C"],["O","N"],["O","S"]]):
+			criteria=[["O","C"],["O","N"],["O","S"]],
+			on_queue=False, queue="batch", nprocs=1, xhost=None):
 	"""
 	Get the mayer bond order.  The Mayer Bond Order (see :func:`get_UMBO`) for more
 	details.
@@ -333,6 +358,55 @@ def get_MBO(halide, cation, solvent,
 			The Mayer Bond Order. If avg is False and there are more than one
 			MBO matching criteria, a list is returned.
 	"""	
+
+	if on_queue:
+		pysub_str = """
+import fpl_auto
+mbo = fpl_auto.get_MBO("$HALIDE", "$CATION", "$SOLVENT",
+			ion="$ION",
+			num_solvents = $NUM_SOLVENTS,
+			route_lvls = $ROUTE_LVLS,
+			avg=$AVG,
+			criteria=$CRITERIA)
+"""
+		pysub_str = pysub_str.replace("$HALIDE",halide)
+		pysub_str = pysub_str.replace("$CATION",cation)
+		pysub_str = pysub_str.replace("$SOLVENT",solvent)
+		pysub_str = pysub_str.replace("$ION",ion)
+		pysub_str = pysub_str.replace("$NUM_SOLVENTS",str(num_solvents))
+		pysub_str = pysub_str.replace("$ROUTE_LVLS",str(route_lvls))
+		pysub_str = pysub_str.replace("$AVG",str(avg))
+		pysub_str = pysub_str.replace("$CRITERIA",str(criteria))
+
+		if type(route_lvls) is list:
+			r = str(route_lvls[0])
+		else:
+			r = str(route_lvls)
+		job_name = fpl_utils.reduce_to_name(ion, halide, cation) + "_" + solvent + "_" + r + ".py"
+		fptr = open(job_name, "w")
+		fptr.write(pysub_str)
+		fptr.close()
+		running_job = jobs.pysub(job_name, nprocs=nprocs, queue=queue, xhost=xhost, path=os.getcwd(), remove_sub_script=True)
+		def mbo(self, criteria=[["O","C"],["O","N"],["O","S"]], avg=True):
+			if not self.is_finished():
+				return None
+			else:
+				import orca
+				import fpl_auto
+				name = self.name.split("_")
+				name.insert(2,"orca")
+				name = "_".join(name)
+				data = orca.read(name)
+				if not data.converged:
+					return -1
+				else:
+					mbo = fpl_auto.get_mbo_given_criteria(data.MBO, criteria, avg)
+					return mbo
+		running_job.mbo = types.MethodType( mbo, running_job)
+
+		return running_job
+
+
 	# Get string for solute
 	solute = fpl_utils.reduce_to_name(ion, halide, cation)
 
@@ -409,36 +483,15 @@ def get_MBO(halide, cation, solvent,
 	fpl_obj.start(save=False)
 
 	# Read in the final results
-	MBOs = fpl_obj.data.MBO
-	# Find all MBOs for Oxygen and return them
-	vals = []
-	# Loop through all mbos
-	for mbo in MBOs:
-		# Loop through criteria
-		for crit in criteria:
-			# Get a list holding elements in MBO bond as c0,c1
-			chk = [a.element for a in mbo[0]]
-			# If wildcard for c0, or if c0 is in mbo bond
-			if crit[0] == "*" or crit[0] in chk:
-				# Remove c0 from mbo bond check (if it's there)
-				if crit[0] in chk:
-					del chk[chk.index(crit[0])]
-				# And check if c1 is wildcard, or in mbo bond
-				if crit[1] == "*" or crit[1] in chk:
-					# If so, store this mbo
-					vals.append(mbo[1])
-
-	if avg:
-		vals = sum(vals)/float(len(vals))
-
-	return vals
+	return _get_mbo_given_criteria(fpl_obj.data.MBO, criteria, avg)
 
 def get_UMBO(halide, cation , solvent,
 			ion="Pb",
 			offset=2.0, 
 			num_solvents = 1,
 			route_lvls = 1,
-			avg=True, criteria=[["O","C"],["O","N"],["O","S"]]):
+			avg=True, criteria=[["O","C"],["O","N"],["O","S"]],
+			on_queue=False, queue="batch", nprocs=1, xhost=None):
 	"""
 	Get the unsaturation (average?) mayer bond order.  The Mayer Bond Order
 	(MBO) is well described `here <http://pubs.rsc.org/en/Content/ArticleLanding/2001/DT/b102094n#!divAbstract>`_.  In short, it is a numerical representation
@@ -492,6 +545,33 @@ def get_UMBO(halide, cation , solvent,
 			The Unsaturation Mayer Bond Order. If avg is False and there are
 			more than one UMBO matching criteria, a list is returned.
 	"""
-	vals = get_MBO(halide, cation, solvent, ion=ion, avg=avg, num_solvents=num_solvents, route_lvls=route_lvls, criteria=criteria)
-	umbos = offset - vals
-	return umbos
+	vals = get_MBO(halide, cation, solvent,
+					ion=ion,
+					avg=avg,
+					num_solvents=num_solvents,
+					route_lvls=route_lvls,
+					criteria=criteria,
+					on_queue=on_queue, queue=queue, nprocs=nprocs, xhost=xhost)
+
+	if on_queue:
+		def umbo(self, offset=2.0, criteria=[["O","C"],["O","N"],["O","S"]], avg=True):
+			if not self.is_finished():
+				return None
+			else:
+				import orca
+				import fpl_auto
+				name = self.name.split("_")
+				name.insert(2,"orca")
+				name = "_".join(name)
+				data = orca.read(name)
+				if not data.converged:
+					return -1
+				else:
+					mbo = fpl_auto.get_mbo_given_criteria(data.MBO, criteria, avg)
+					return offset - mbo
+		vals.umbo = types.MethodType( umbo, vals)
+
+		return vals
+	else:
+		umbos = offset - vals
+		return umbos

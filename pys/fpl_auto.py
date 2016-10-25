@@ -337,8 +337,7 @@ def get_mbo_given_criteria(MBOs, criteria, avg):
 					vals.append(mbo[1])
 
 	if avg:
-		if type(vals) is list:
-			vals = sum(vals)/float(len(vals))
+		vals = sum(vals)/float(len(vals))
 
 	return vals
 

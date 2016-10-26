@@ -97,9 +97,9 @@ fpl_job.start(on_queue=None)
 		## Get structures for solvent and solute
 		# Check if upper case or lower case file exists and use the one that does
 		if os.path.exists(fpl_constants.cml_dir+self.solvent_name.lower()+".cml"):
-			solvent = structures.Molecule(fpl_constants.cml_dir+self.solvent_name.lower()+".cml", extra_parameters=self.extra, allow_errors=True)
+			solvent = structures.Molecule(fpl_constants.cml_dir+self.solvent_name.lower()+".cml", extra_parameters=self.extra, allow_errors=True, default_angles=fpl_constants.default_angles)
 		elif os.path.exists(fpl_constants.cml_dir+self.solvent_name.upper()+".cml"):
-			solvent = structures.Molecule(fpl_constants.cml_dir+self.solvent_name.upper()+".cml", extra_parameters=self.extra, allow_errors=True)
+			solvent = structures.Molecule(fpl_constants.cml_dir+self.solvent_name.upper()+".cml", extra_parameters=self.extra, allow_errors=True, default_angles=fpl_constants.default_angles)
 		else:
 			raise Exception("Solvent file %s.cml does not exist in %s.  Ensure you gave the file exists and re-run." % (self.solvent_name, fpl_constants.cml_dir))
 		if self.solute is not None:
